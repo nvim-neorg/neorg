@@ -26,7 +26,7 @@ module.private = {
     namespace = vim.api.nvim_create_namespace("core.ui"),
 }
 
----@class core.ui
+---@class core.ui: core.ui.selection_popup, core.ui.text_popup
 module.public = {
     --- Returns a table in the form of { width, height } containing the width and height of the current window
     ---@param half boolean #If true returns a position that could be considered the center of the window
@@ -125,11 +125,11 @@ module.public = {
         vim.api.nvim_buf_set_name(buf, bufname)
         vim.api.nvim_win_set_buf(0, buf)
 
-        vim.api.nvim_win_set_option(0, "list", false)
-        vim.api.nvim_win_set_option(0, "colorcolumn", "")
-        vim.api.nvim_win_set_option(0, "number", false)
-        vim.api.nvim_win_set_option(0, "relativenumber", false)
-        vim.api.nvim_win_set_option(0, "signcolumn", "no")
+        vim.api.nvim_set_option_value("list", false, { win = 0 })
+        vim.api.nvim_set_option_value("colorcolumn", "", { win = 0 })
+        vim.api.nvim_set_option_value("number", false, { win = 0 })
+        vim.api.nvim_set_option_value("relativenumber", false, { win = 0 })
+        vim.api.nvim_set_option_value("signcolumn", "no", { win = 0 })
 
         -- Merge the user provided options with the default options and apply them to the new buffer
         module.public.apply_buffer_options(buf, vim.tbl_extend("keep", config or {}, default_options))
@@ -265,8 +265,9 @@ module.public = {
         vim.keymap.set("n", "<Esc>", vim.cmd.bdelete, { buffer = buf, silent = true })
         vim.keymap.set("n", "q", vim.cmb.bdelete, { buffer = buf, silent = true })
 
-        vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
 
+        ---@diagnostic disable-next-line: undefined-field
         local cached_virtualedit = vim.opt.virtualedit:get()
         vim.opt.virtualedit = "all"
 
@@ -293,6 +294,7 @@ module.public = {
     ---@param opts table|nil
     ---   - opts.keybinds (boolean)             if false, will not use the default keybinds
     ---   - opts.del_on_autocommands (table)    delete buffer on specified autocommands
+    ---@return number? buffer or nil when an error is logged
     create_norg_buffer = function(name, split_type, config, opts)
         vim.validate({
             name = { name, "string" },
@@ -361,6 +363,9 @@ module.examples = {
     ["Create a selection popup"] = function()
         -- Creates the buffer
         local buffer = module.public.create_split("selection/Test selection")
+        if not buffer then
+            return
+        end
 
         -- Binds a selection to that buffer
         local selection = module.public

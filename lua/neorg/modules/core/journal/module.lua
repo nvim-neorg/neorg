@@ -286,7 +286,7 @@ module.public = {
         end
 
         ---Gets the title from the metadata of a file, must be called in a vim.schedule
-        ---@param file PathlibPath
+        ---@param file PathlibPath | string
         ---@return string?
         local get_title = function(file)
             local path = workspace_path / folder_name / file

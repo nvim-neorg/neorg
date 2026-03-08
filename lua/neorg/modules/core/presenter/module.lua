@@ -171,14 +171,17 @@ module.public = {
         -- Generate views selection popup
         local buffer =
             module.required["core.ui"].create_norg_buffer("Norg Presenter", "nosplit", nil, { keybinds = false })
+        if not buffer then
+            return
+        end
 
-        api.nvim_buf_set_option(buffer, "modifiable", true)
+        api.nvim_set_option_value("modifiable", true, { buf = buffer })
         api.nvim_buf_set_lines(buffer, 0, -1, false, results[1])
         api.nvim_buf_call(buffer, function()
             vim.cmd("set scrolloff=999")
         end)
 
-        api.nvim_buf_set_option(buffer, "modifiable", false)
+        api.nvim_set_option_value("modifiable", false, { buf = buffer })
 
         module.private.buf = buffer
         module.private.data = results
@@ -190,9 +193,9 @@ module.public = {
         end
 
         if vim.tbl_count(module.private.data) == module.private.current_page then
-            api.nvim_buf_set_option(module.private.buf, "modifiable", true)
+            api.nvim_set_option_value("modifiable", true, { buf = module.private.buf })
             api.nvim_buf_set_lines(module.private.buf, 0, -1, false, { "Press `next` again to close..." })
-            api.nvim_buf_set_option(module.private.buf, "modifiable", false)
+            api.nvim_set_option_value("modifiable", false, { buf = module.private.buf })
             module.private.current_page = module.private.current_page + 1
             return
         elseif vim.tbl_count(module.private.data) < module.private.current_page then
@@ -202,9 +205,9 @@ module.public = {
 
         module.private.current_page = module.private.current_page + 1
 
-        api.nvim_buf_set_option(module.private.buf, "modifiable", true)
+        api.nvim_set_option_value("modifiable", true, { buf = module.private.buf })
         api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.data[module.private.current_page])
-        api.nvim_buf_set_option(module.private.buf, "modifiable", false)
+        api.nvim_set_option_value("modifiable", false, { buf = module.private.buf })
     end,
 
     previous_page = function()
@@ -218,9 +221,9 @@ module.public = {
 
         module.private.current_page = module.private.current_page - 1
 
-        api.nvim_buf_set_option(module.private.buf, "modifiable", true)
+        api.nvim_set_option_value("modifiable", true, { buf = module.private.buf })
         api.nvim_buf_set_lines(module.private.buf, 0, -1, false, module.private.data[module.private.current_page])
-        api.nvim_buf_set_option(module.private.buf, "modifiable", false)
+        api.nvim_set_option_value("modifiable", false, { buf = module.private.buf })
     end,
 
     close = function()

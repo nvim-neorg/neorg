@@ -12,6 +12,7 @@ The metagen module exposes two commands - `:Neorg inject-metadata` and `:Neorg u
 --]]
 
 local neorg = require("neorg.core")
+---@type neorg.configuration, neorg.modules, neorg.core.utils
 local config, modules, utils, lib = neorg.config, neorg.modules, neorg.utils, neorg.lib
 
 local module = modules.create("core.esupports.metagen")
@@ -114,9 +115,8 @@ local function fill_template_defaults()
         end
     end
 
-    module.config.public.template = lib.map(
-        module.config.public.template,
-        function(_key, elem) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+    module.config.public.template = vim.iter(module.config.public.template):map(
+        function(elem)
             if not elem[2] then
                 return lib.filter(default_template, match_first(elem[1]))
             end
@@ -238,11 +238,13 @@ module.public = {
 
         local metadata_node = nil
 
-        for id, node in pairs(found) do
+        for id, nodes in pairs(found) do
             local name = query.captures[id]
             -- node is a list in nvim 0.11+
-            if vim.islist(node) then
-                node = node[1]
+            ---@type TSNode
+            local node
+            if vim.islist(nodes) then
+                node = nodes[1]
             end
             if name == "meta" then
                 metadata_node = node
@@ -333,7 +335,7 @@ module.public = {
             return
         end
 
-        local modified = vim.api.nvim_buf_get_option(buf, "modified")
+        local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
         if not modified then
             return
         end
@@ -455,7 +457,7 @@ module.on_event = function(event)
         event.type == ("core.autocommands.events." .. module.private.listen_event)
         and event.content.norg
         and vim.api.nvim_buf_is_loaded(event.buffer)
-        and vim.api.nvim_buf_get_option(event.buffer, "modifiable")
+        and vim.api.nvim_get_option_value("modifiable", { buf = event.buffer })
         and not module.private.buffers[event.buffer]
         and not vim.startswith(event.filehead, "neorg://") -- Do not inject metadata on displays created by neorg by default
     then

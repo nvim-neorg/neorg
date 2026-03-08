@@ -61,7 +61,8 @@ local Path = require("pathlib")
 
 local neorg = require("neorg.core")
 local log, modules, utils = neorg.log, neorg.modules, neorg.utils
-local dirman_utils
+---@type core.dirman.utils, core.ui
+local dirman_utils, ui
 
 local module = modules.create("core.dirman")
 
@@ -80,6 +81,7 @@ module.load = function()
     end
 
     dirman_utils = module.required["core.dirman.utils"]
+    ui = module.required["core.ui"]
 
     vim.keymap.set("", "<Plug>(neorg.dirman.new-note)", module.public.new_note)
 
@@ -98,9 +100,10 @@ module.load = function()
     -- Synchronize core.neorgcmd autocompletions
     module.public.sync()
 
+    local default_workspace = module.public.get_default_workspace()
     if module.config.public.open_last_workspace and vim.fn.argc(-1) == 0 then
         if module.config.public.open_last_workspace == "default" then
-            if not module.public.get_default_workspace() then
+            if not default_workspace then
                 log.warn(
                     'Configuration error in `core.dirman`: the `open_last_workspace` option is set to "default", but no default workspace is provided in the `default_workspace` configuration variable. Defaulting to opening the last known workspace.'
                 )
@@ -108,12 +111,12 @@ module.load = function()
                 return
             end
 
-            module.public.open_workspace(module.public.get_default_workspace())
+            module.public.open_workspace(default_workspace)
         else
             module.public.set_last_workspace()
         end
-    elseif module.public.get_default_workspace() then
-        module.public.set_workspace(module.public.get_default_workspace())
+    elseif default_workspace then
+        module.public.set_workspace(default_workspace)
     end
 end
 
@@ -464,7 +467,7 @@ module.public = {
     end,
     new_note = function()
         if module.config.public.use_popup then
-            module.required["core.ui"].create_prompt("NeorgNewNote", "New Note: ", function(text)
+            ui.create_prompt("NeorgNewNote", "New Note: ", function(text)
                 -- Create the file that the user has entered
                 module.public.create_file(text)
             end, {

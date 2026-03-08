@@ -31,7 +31,7 @@ module.public = {
             --- Renders something in the buffer
             --- @vararg table #A vararg of { text, highlight } tables
             render = function(self, ...)
-                vim.api.nvim_buf_set_option(buffer, "modifiable", true)
+                vim.api.nvim_set_option_value("modifiable", true, { buf = buffer })
 
                 -- Don't render if we're on the first line
                 -- because buffers always open with one line available
@@ -50,7 +50,7 @@ module.public = {
                 -- Track which line we're on
                 self.position = self.position + 1
 
-                vim.api.nvim_buf_set_option(buffer, "modifiable", false)
+                vim.api.nvim_set_option_value("modifiable", false, { buf = buffer })
             end,
 
             --- Resets the renderer by clearing the buffer and resetting
@@ -58,12 +58,12 @@ module.public = {
             reset = function(self)
                 self.position = 0
 
-                vim.api.nvim_buf_set_option(buffer, "modifiable", true)
+                vim.api.nvim_set_option_value("modifiable", true, { buf = buffer })
 
                 vim.api.nvim_buf_clear_namespace(buffer, namespace, 0, -1)
                 vim.api.nvim_buf_set_lines(buffer, 0, -1, true, {})
 
-                vim.api.nvim_buf_set_option(buffer, "modifiable", false)
+                vim.api.nvim_set_option_value("modifiable", false, { buf = buffer })
             end,
         }
 
@@ -431,15 +431,15 @@ module.public = {
                 vim.fn.prompt_setprompt(buffer, configuration.text .. configuration.delimiter)
 
                 -- Create prompt
-                vim.api.nvim_buf_set_option(buffer, "modifiable", true)
-                local options = vim.api.nvim_buf_get_option(buffer, "buftype")
-                vim.api.nvim_buf_set_option(buffer, "buftype", "prompt")
+                vim.api.nvim_set_option_value("modifiable", true, { buf = buffer })
+                local options = vim.api.nvim_get_option_value("buftype", { buf = buffer })
+                vim.api.nvim_set_option_value("buftype", "prompt", { buf = buffer })
 
                 -- Create a callback to be invoked on prompt confirmation
                 vim.fn.prompt_setcallback(buffer, function(content)
                     if content:len() > 0 then
                         -- Remakes the buftype option the same before prompt
-                        vim.api.nvim_buf_set_option(buffer, "buftype", options)
+                        vim.api.nvim_set_option_value("buftype", options, { buf = buffer })
 
                         -- Delete the selection before any action
                         -- We assume pressing a flag does quit the popup

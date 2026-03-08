@@ -19,12 +19,15 @@ local modules = neorg.modules
 
 local module = modules.create("core.export.html")
 
+---@type core.dirman, core.esupports.hop
+local dirman, hop
+
 module.setup = function()
     return {
         success = true,
         requires = {
-            "core.integrations.treesitter",
             "core.esupports.hop",
+            "core.dirman",
         },
     }
 end
@@ -221,7 +224,6 @@ local function wrap_anchor()
 end
 
 local function set_link(_, node)
-    local hop = modules.get_module("core.esupports.hop")
     local link = hop.parse_link(node, 0)
 
     return {
@@ -434,8 +436,6 @@ local function build_footnote(footnote)
 end
 
 local function get_anchor(_, node, _)
-    local hop = modules.get_module("core.esupports.hop")
-
     local target = hop.locate_anchor_declaration_target(node)
     local link = nil
     local link_desription = nil
@@ -458,7 +458,10 @@ local function get_anchor(_, node, _)
     }
 end
 
-module.load = function() end
+module.load = function()
+    dirman = module.required["core.dirman"]
+    hop = module.required["core.esupports.hop"]
+end
 
 module.config.public = {
     --- If you'd like to modify the way specific range tabs are handled. For
@@ -492,7 +495,6 @@ module.config.public = {
             local file = link.link_file_text or ""
             if file:match("%$/") then
                 local workspace_path = "/"
-                local dirman = modules.get_module("core.dirman")
                 local current_workspace = dirman.get_current_workspace()
                 if current_workspace then
                     workspace_path = "/" .. current_workspace[1] .. "/"

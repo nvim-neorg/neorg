@@ -308,7 +308,7 @@ module.private = {
     ---@param command string #Supplied by nvim itself; the full typed out command
     generate_completions = function(_, command)
         local current_buf = vim.api.nvim_get_current_buf()
-        local is_norg = vim.api.nvim_buf_get_option(current_buf, "filetype") == "norg"
+        local is_norg = vim.api.nvim_get_option_value("filetype", { buf = current_buf }) == "norg"
 
         local function check_condition(condition)
             if condition == nil then

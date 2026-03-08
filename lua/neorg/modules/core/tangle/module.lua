@@ -261,6 +261,9 @@ module.public = {
         end
 
         local document_root = treesitter.get_document_root(buffer)
+        if not document_root then
+            return
+        end
         local filename_to_languages = {}
         local tangles = {
             -- filename = { block_content }
@@ -497,27 +500,27 @@ module.on_event = function(event)
         local file_count = vim.tbl_count(tangles)
         local tangled_count = 0
 
-        for file, content in pairs(tangles) do
-            file = dirman_utils.expand_pathlib(file, true)
+        for file_str, content in pairs(tangles) do
+            local file = dirman_utils.expand_pathlib(file_str, true)
             if not file then
                 goto continue
             end
             if not file:parent():exists() then
                 file:parent():mkdir(Path.permission("rwxr-xr-x"), true)
             end
-            file = file:tostring()
-            vim.uv.fs_open(file, "w", 438, function(werr, fd)
-                assert(not werr and fd, lib.lazy_string_concat("Failed to open file '", file, "' for tangling: ", werr))
+            file_str = file:tostring()
+            vim.uv.fs_open(file_str, "w", 438, function(werr, fd)
+                assert(not werr and fd, lib.lazy_string_concat("Failed to open file '", file_str, "' for tangling: ", werr))
 
                 local write_content = table.concat(content, "\n")
                 if module.config.public.report_on_empty and write_content:len() == 0 then
                     vim.schedule(function()
-                        utils.notify(string.format("Tangled content for %s is empty.", file), vim.log.levels.WARN)
+                        utils.notify(string.format("Tangled content for %s is empty.", file_str), vim.log.levels.WARN)
                     end)
                 end
 
-                vim.uv.fs_write(fd, write_content, 0, function(werr)
-                    assert(not werr, lib.lazy_string_concat("Failed to write to '", file, "' for tangling: ", werr))
+                vim.uv.fs_write(fd, write_content, 0, function(werr2)
+                    assert(not werr2, lib.lazy_string_concat("Failed to write to '", file_str, "' for tangling: ", werr2))
                     tangled_count = tangled_count + 1
                     file_count = file_count - 1
                     if file_count == 0 then
@@ -534,7 +537,7 @@ module.on_event = function(event)
                     end
                 end)
                 vim.uv.fs_close(fd, function(err)
-                    assert(not err, lib.lazy_string_concat("Failed to close file '", file, "' for tangling: ", err))
+                    assert(not err, lib.lazy_string_concat("Failed to close file '", file_str, "' for tangling: ", err))
                 end)
             end)
             ::continue::

@@ -149,7 +149,7 @@ module.load = function()
 end
 
 ---Get the key for a given range
----@param range Range4
+---@param range Range2 | Range4
 module.private.get_key = function(range)
     return ("%d:%d"):format(range[1], range[2])
 end

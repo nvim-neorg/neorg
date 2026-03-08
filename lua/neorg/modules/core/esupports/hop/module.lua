@@ -25,9 +25,11 @@ mapping them):
 
 local neorg = require("neorg.core")
 local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
-local links, dirman_utils
 
 local module = modules.create("core.esupports.hop")
+
+---@type core.ui, core.integrations.treesitter, core.links, core.dirman.utils
+local ui, ts, links, dirman_utils
 
 module.setup = function()
     return {
@@ -42,8 +44,10 @@ module.setup = function()
 end
 
 module.load = function()
+    ui = module.required["core.ui"]
     links = module.required["core.links"]
     dirman_utils = module.required["core.dirman.utils"]
+    ts = module.required["core.integrations.treesitter"]
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link)", module.public.hop_link)
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.vsplit)", lib.wrap(module.public.hop_link, "vsplit"))
     vim.keymap.set("", "<Plug>(neorg.esupports.hop.hop-link.drop)", lib.wrap(module.public.hop_link, "drop"))
@@ -110,6 +114,10 @@ end
 ---@field node TSNode The node of the target.
 ---@field type LinkTargetType The type of target that was located.
 ---@field buffer number The buffer ID in which the target was found.
+---@field uri? string For external links
+---@field line? number Link number
+---@field date? osdate For calendar links
+---@field path? string | PathlibPath
 
 ---@class (exact) PotentialLinkFixes
 ---@field similarity number The similarity of this candidate to the current title of the link.
@@ -130,8 +138,7 @@ module.public = {
                 return
             end
 
-            local range =
-                module.required["core.integrations.treesitter"].get_node_range(located_anchor_declaration.node)
+            local range = ts.get_node_range(located_anchor_declaration.node)
 
             vim.cmd([[normal! m`]])
             vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
@@ -232,7 +239,7 @@ module.public = {
                         elseif open_mode == "drop" then
                             vim.cmd("drop " .. vim.api.nvim_buf_get_name(located_link_information.buffer))
                         else
-                            vim.api.nvim_buf_set_option(located_link_information.buffer, "buflisted", true)
+                            vim.api.nvim_set_option_value("buflisted", true, { buf = located_link_information.buffer })
                             vim.api.nvim_set_current_buf(located_link_information.buffer)
                         end
                     end
@@ -243,9 +250,7 @@ module.public = {
                     end
 
                     if located_link_information.node then
-                        local range = module.required["core.integrations.treesitter"].get_node_range(
-                            located_link_information.node
-                        )
+                        local range = ts.get_node_range(located_link_information.node)
 
                         vim.cmd([[normal! m`]])
                         vim.api.nvim_win_set_cursor(0, { range.row_start + 1, range.column_start })
@@ -286,9 +291,12 @@ module.public = {
             return
         end
 
-        local link_not_found_buf = module.required["core.ui"].create_split("link-not-found")
+        local link_not_found_buf = ui.create_split("link-not-found")
+        if link_not_found_buf == nil then
+            return
+        end
 
-        local selection = module.required["core.ui"]
+        local selection = ui
             .begin_selection(link_not_found_buf)
             :listener({
                 "<Esc>",
@@ -346,10 +354,10 @@ module.public = {
     ---@return TSNode? #A `link` or `anchor` node if present under the cursor, else `nil`
     extract_link_node = function()
         local current_node = vim.treesitter.get_node()
-        local found_node = module.required["core.integrations.treesitter"].find_parent(
-            current_node,
-            { "link", "anchor_declaration", "anchor_definition" }
-        )
+        if not current_node then
+            return
+        end
+        local found_node = ts.find_parent(current_node, { "link", "anchor_declaration", "anchor_definition" })
 
         if not found_node then
             found_node = (module.config.public.lookahead and module.public.lookahead_link_node())
@@ -410,9 +418,7 @@ module.public = {
             return
         end
 
-        local target = module.required["core.integrations.treesitter"]
-            .get_node_text(anchor_decl_node:named_child(0):named_child(0))
-            :gsub("[%s\\]", "")
+        local target = ts.get_node_text(anchor_decl_node:named_child(0):named_child(0)):gsub("[%s\\]", "")
 
         local query_str = [[
             (anchor_definition
@@ -422,7 +428,7 @@ module.public = {
             )
         ]]
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root()
+        local document_root = ts.get_document_root()
 
         if not document_root then
             return
@@ -434,7 +440,7 @@ module.public = {
             local capture = query.captures[id]
 
             if capture == "text" then
-                local original_title = module.required["core.integrations.treesitter"].get_node_text(node)
+                local original_title = ts.get_node_text(node)
                 local title = original_title:gsub("[%s\\]", "")
 
                 if title:lower() == target:lower() then
@@ -449,7 +455,7 @@ module.public = {
 
     --- Converts a link node into a table of data related to the link
     ---@param link_node TSNode #The link node that was found by e.g. `extract_link_node()`
-    ---@param buf number #The buffer to parse the link in
+    ---@param buf number? #The buffer to parse the link in
     ---@return Link? #A table of data about the link
     parse_link = function(link_node, buf)
         buf = buf or 0
@@ -517,7 +523,7 @@ module.public = {
         ]]
 
         ---@type TSNode?
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local document_root = ts.get_document_root(buf)
 
         if not document_root then
             return
@@ -525,7 +531,7 @@ module.public = {
 
         ---@type vim.treesitter.Query
         local query = utils.ts_parse_query("norg", query_text)
-        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+        local range = ts.get_node_range(link_node)
 
         ---@type Link
         local parsed_link_information = {
@@ -535,12 +541,12 @@ module.public = {
         for id, node in query:iter_captures(document_root, buf, range.row_start, range.row_end + 1) do
             local capture = query.captures[id]
 
-            local capture_node_range = module.required["core.integrations.treesitter"].get_node_range(node)
+            local capture_node_range = ts.get_node_range(node)
 
             -- Check whether the node captured node is in bounds.
             -- There are certain rare cases where incorrect nodes would be parsed.
             if range_contains(range, capture_node_range) then
-                local extract_node_text = lib.wrap(module.required["core.integrations.treesitter"].get_node_text, node)
+                local extract_node_text = lib.wrap(ts.get_node_text, node)
 
                 parsed_link_information[capture] = parsed_link_information[capture]
                     or lib.match(capture)({
@@ -660,7 +666,7 @@ module.public = {
 
             _ = function()
                 local query_str = links.get_link_target_query_string(parsed_link_information.link_type)
-                local document_root = module.required["core.integrations.treesitter"].get_document_root(buf_pointer)
+                local document_root = ts.get_document_root(buf_pointer)
 
                 if not document_root then
                     return
@@ -672,8 +678,7 @@ module.public = {
                     local capture = query.captures[id]
 
                     if capture == "title" then
-                        local original_title =
-                            module.required["core.integrations.treesitter"].get_node_text(node, buf_pointer)
+                        local original_title = ts.get_node_text(node, buf_pointer)
 
                         if original_title then
                             local title = original_title:gsub("[%s\\]", "")
@@ -703,6 +708,10 @@ module.public = {
         end
 
         local parsed_link = module.public.parse_link(link_node_at_cursor)
+        if not parsed_link then
+            log.trace("Failed to parse link", vim.inspect(link_node_at_cursor))
+            return
+        end
 
         module.public.follow_link(link_node_at_cursor, split_mode, parsed_link)
     end,
@@ -880,7 +889,7 @@ module.private = {
 
         local query = utils.ts_parse_query("norg", query_str)
 
-        local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
+        local document_root = ts.get_document_root(buffer)
 
         if not document_root then
             return
@@ -893,7 +902,7 @@ module.private = {
             local capture_name = query.captures[id]
 
             if capture_name == "title" then
-                local text = module.required["core.integrations.treesitter"].get_node_text(node, buffer)
+                local text = ts.get_node_text(node, buffer)
                 local similarity = module.private.calculate_similarity(parsed_link_information.link_location_text, text)
 
                 -- If our match is similar enough then add it to the list
@@ -926,7 +935,7 @@ module.private = {
             return
         end
 
-        local range = module.required["core.integrations.treesitter"].get_node_range(link_node)
+        local range = ts.get_node_range(link_node)
 
         local prefix = lib.when(
             parsed_link_information.link_type == "generic" and not force_type,

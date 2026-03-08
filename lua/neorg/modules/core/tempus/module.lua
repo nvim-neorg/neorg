@@ -352,7 +352,7 @@ module.public = {
                         return "Ambiguous month name! Possible interpretations: "
                             .. table.concat(vim.tbl_keys(valid_months), ",")
                     elseif count == 1 then
-                        local valid_month_name, valid_month_number = next(valid_months)
+                        local valid_month_name, valid_month_number = unpack(valid_months[1])
 
                         output.month = {
                             name = lib.title(valid_month_name),
@@ -380,7 +380,7 @@ module.public = {
                         return "Ambiguous weekday name! Possible interpretations: "
                             .. table.concat(vim.tbl_keys(valid_weekdays), ",")
                     elseif count == 1 then
-                        local valid_weekday_name, valid_weekday_number = next(valid_weekdays)
+                        local valid_weekday_name, valid_weekday_number = unpack(valid_weekdays[1])
 
                         output.weekday = {
                             name = lib.title(valid_weekday_name),

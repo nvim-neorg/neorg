@@ -188,6 +188,9 @@ module.public = {
         )
 
         local document_root = module.required["core.integrations.treesitter"].get_document_root(buffer)
+        if not document_root then
+            return
+        end
 
         --- Table containing information about the code block that is potentially under the cursor
         local code_block_info

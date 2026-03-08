@@ -24,6 +24,9 @@ local lib, modules = neorg.lib, neorg.modules
 
 local module = modules.create("core.esupports.indent")
 
+---@type core.integrations.treesitter
+local ts
+
 module.setup = function()
     return {
         requires = {
@@ -37,7 +40,7 @@ end
 module.public = {
     indentexpr = function(buf, line, node)
         line = line or (vim.v.lnum - 1)
-        node = node or module.required["core.integrations.treesitter"].get_first_node_on_line(buf, line)
+        node = node or ts.get_first_node_on_line(buf, line)
 
         if not node then
             return 0
@@ -89,16 +92,14 @@ module.public = {
                     end
                 end
 
-                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
-                    + vim.fn["nvim_treesitter#indent"]()
+                return ts.get_node_range(node:parent()).column_start + vim.fn["nvim_treesitter#indent"]()
             else
                 return vim.fn["nvim_treesitter#indent"]()
             end
         end
 
         -- Check if the code is within a verbatim block
-        local ranged_tag =
-            module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag_content")
+        local ranged_tag = ts.find_parent(node, "ranged_verbatim_tag_content")
         indent_data = ranged_tag and module.config.public.indents[ranged_tag:type()] or indent_data
 
         -- Indents can be a static value, so account for that here
@@ -186,19 +187,14 @@ module.config.public = {
         -- a child of the previous heading in the syntax tree some extra work is required to
         -- make it indent as expected.
         ["strong_paragraph_delimiter"] = {
-            indent = function(buf, _, line)
-                local node = module.required["core.integrations.treesitter"].get_first_node_on_line(
-                    buf,
-                    vim.fn.prevnonblank(line) - 1
-                )
+            indent = function(buf, _, line, _, _)
+                local node = ts.get_first_node_on_line(buf, vim.fn.prevnonblank(line) - 1)
 
                 if not node then
                     return 0
                 end
 
-                return module.required["core.integrations.treesitter"].get_node_range(
-                    node:type():match("heading%d") and node:named_child(1) or node
-                ).column_start
+                return ts.get_node_range(node:type():match("heading%d") and node:named_child(1) or node).column_start
             end,
         },
 
@@ -274,18 +270,22 @@ module.config.public = {
     modifiers = {
         -- For any object that can exist under headings
         ["under-headings"] = function(_, node)
-            local heading = module.required["core.integrations.treesitter"].find_parent(node:parent(), "heading%d")
+            local heading = ts.find_parent(node:parent(), "heading%d")
 
-            if not heading or not heading:named_child(1) then
+            if not heading then
+                return 0
+            end
+            local child = heading:named_child(1)
+            if not child then
                 return 0
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(heading:named_child(1)).column_start
+            return ts.get_node_range(child).column_start
         end,
 
         -- For any object that should be indented under a list
         ["under-nestable-detached-modifiers"] = function(_, node)
-            local list = module.required["core.integrations.treesitter"].find_parent(node, {
+            local list = ts.find_parent(node, {
                 "unordered_list1",
                 "unordered_list2",
                 "unordered_list3",
@@ -311,19 +311,23 @@ module.config.public = {
             end
 
             if list:named_child(1):type() == "detached_modifier_extension" then
-                return module.required["core.integrations.treesitter"].get_node_range(list:named_child(2)).column_start
-                    + module.required["core.integrations.treesitter"]
-                        .get_node_text(list:named_child(2))
-                        :match("^%s*")
-                        :len()
+                local child = list:named_child(2)
+                if not child then
+                    return 0
+                end
+                return ts.get_node_range(child).column_start + ts.get_node_text(list:named_child(2)):match("^%s*"):len()
             end
 
-            return module.required["core.integrations.treesitter"].get_node_range(list:named_child(1)).column_start
+            local child = list:named_child(1)
+            if not child then
+                return 0
+            end
+            return ts.get_node_range(child).column_start
         end,
 
         -- For any ranged tag end that should always be indented as far as the beginning of the ranged tag
         ["ranged-tag-end"] = function(_, node)
-            return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
+            return ts.get_node_range(node:parent()).column_start
         end,
     },
 
@@ -352,20 +356,22 @@ module.config.public = {
 
 module.load = function()
     module.required["core.autocommands"].enable_autocommand("BufEnter")
+
+    ts = module.required["core.integrations.treesitter"]
 end
 
 module.on_event = function(event)
     if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        vim.api.nvim_buf_set_option(
-            event.buffer,
+        vim.api.nvim_set_option_value(
             "indentexpr",
-            ("v:lua.require'neorg'.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer)
+            ("v:lua.require'neorg'.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer),
+            { buf = event.buffer }
         )
 
         local indentkeys = "o,O,*<M-o>,*<M-O>"
             .. lib.when(module.config.public.format_on_enter, ",*<CR>", "")
             .. lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
-        vim.api.nvim_buf_set_option(event.buffer, "indentkeys", indentkeys)
+        vim.api.nvim_set_option_value("indentkeys", indentkeys, { buf = event.buffer })
     end
 end
 

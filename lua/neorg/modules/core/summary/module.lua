@@ -50,6 +50,9 @@ module.load = function()
 
     local get_first_heading_title = function(bufnr)
         local document_root = ts.get_document_root(bufnr)
+        if not document_root then
+            return
+        end
         if not heading_query then
             -- allow second level headings, just in case
             local heading_query_string = [[
