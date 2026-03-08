@@ -517,6 +517,12 @@ module.on_event = function(event)
                 end
 
                 vim.uv.fs_write(fd, write_content, 0, function(werr)
+                    -- Whether or not we successfully wrote the file, close the fd.
+                    vim.uv.fs_close(fd, function(err)
+                        assert(not err, lib.lazy_string_concat("Failed to close file '", file, "' for tangling: ", err))
+                    end)
+
+                    -- Now that we've cleaned up the fd, we can notify of any failures.
                     assert(not werr, lib.lazy_string_concat("Failed to write to '", file, "' for tangling: ", werr))
                     tangled_count = tangled_count + 1
                     file_count = file_count - 1
@@ -532,9 +538,6 @@ module.on_event = function(event)
                             )
                         )
                     end
-                end)
-                vim.uv.fs_close(fd, function(err)
-                    assert(not err, lib.lazy_string_concat("Failed to close file '", file, "' for tangling: ", err))
                 end)
             end)
             ::continue::
