@@ -386,7 +386,7 @@ module.private = {
         local n_line = vim.fn.line("$", win)
         local result = 1
         for i = 1, n_line do
-            result = math.max(result, vim.fn.virtcol({ i, "$" }, 0, win))
+            result = math.max(result, vim.fn.virtcol({ i, "$" }, false, win))
         end
         return result
     end,

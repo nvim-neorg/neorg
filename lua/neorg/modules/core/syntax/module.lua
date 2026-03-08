@@ -22,6 +22,8 @@ local neorg = require("neorg.core")
 local modules, utils = neorg.modules, neorg.utils
 
 local module = modules.create("core.syntax")
+---@type core.integrations.treesitter
+local ts
 
 local function schedule(func)
     vim.schedule(function()
@@ -113,9 +115,9 @@ module.public = {
         end
 
         -- If the tree is valid then attempt to perform the query
-        local tree = module.required["core.integrations.treesitter"].get_document_root(buf)
+        local root = ts.get_document_root(buf)
 
-        if tree then
+        if root then
             -- get the language node used by the code block
             local code_lang = utils.ts_parse_query(
                 "norg",
@@ -125,10 +127,10 @@ module.public = {
                 )]]
             )
 
-            -- check for each code block capture in the root with a language paramater
+            -- check for each code block capture in the root with a language parameter
             -- to build a table of all the languages for a given buffer
             local compare_table = {} -- a table to compare to what was loaded
-            for id, node in code_lang:iter_captures(tree:root(), buf, from or 0, to or -1) do
+            for id, node in code_lang:iter_captures(root, buf, from or 0, to or -1) do
                 if id == 2 then -- id 2 here refers to the "language" tag
                     -- find the end node of a block so we can grab the row
                     local end_node = node:next_named_sibling():next_sibling()
@@ -500,6 +502,8 @@ module.load = function()
     -- Load available regex languages
     -- get the available regex files for the current session
     module.private.available_languages = utils.get_language_list(false)
+
+    ts = module.required["core.integrations.treesitter"] --[[@as core.integrations.treesitter]]
 end
 
 module.on_event = function(event)

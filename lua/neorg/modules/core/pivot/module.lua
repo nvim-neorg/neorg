@@ -57,6 +57,9 @@ module.private = {
     ---@return TSNode?
     get_parent_list = function(node)
         local parent = node:parent()
+        if not parent then
+            return
+        end
 
         return module.required["core.integrations.treesitter"].find_parent(parent, {
             "generic_list",

@@ -1,6 +1,7 @@
 local configuration = require("neorg.core.config")
 local log = require("neorg.core.log")
 
+---@class neorg.core.utils
 local utils = {}
 local version = vim.version() -- TODO: Move to a more local scope
 

@@ -1295,11 +1295,15 @@ local function handle_init_event(event)
     local attach_succeeded = vim.api.nvim_buf_attach(event.buffer, true, { on_lines = on_line_callback })
     assert(attach_succeeded)
     local language_tree = vim.treesitter.get_parser(event.buffer, "norg")
+    if not language_tree then
+        log.error("Failed to get parser for language norg in buffer " .. event.buffer)
+        return
+    end
 
     local bufid = event.buffer
     -- used for detecting non-local (multiline) changes, like spoiler / code block
     -- TODO: exemption in certain cases, for example when changing only heading followed by pure texts,
-    -- in which case all its descendents would be unnecessarily re-concealed.
+    -- in which case all its descendants would be unnecessarily re-concealed.
     local function on_changedtree_callback(ranges)
         -- TODO: abandon if too large
         for i = 1, #ranges do

@@ -546,7 +546,7 @@ module.public = {
 
     --- Given a node this function will break down the AST elements and return the corresponding text for certain nodes
     --- @param tag_node TSNode - a node of type tag/carryover_tag
-    --- @param throw boolean - when true, throw an error instead of logging and returning on failure
+    --- @param throw boolean? - when true, throw an error instead of logging and returning on failure
     get_tag_info = function(tag_node, throw)
         if
             not tag_node
@@ -649,7 +649,7 @@ module.public = {
         }
     end,
     --- Extracts the document root from the current document or from the string
-    ---@param src number|string The number of the buffer to extract or string with code (can be nil)
+    ---@param src number|string|nil The number of the buffer to extract or string with code
     ---@param filetype string? #The filetype of the buffer or the string with code
     ---@return TSNode? #The root node of the document
     get_document_root = function(src, filetype)
@@ -665,6 +665,10 @@ module.public = {
             parser = vim.treesitter.get_parser(src or 0, filetype)
         end
 
+        if not parser then
+            return
+        end
+
         local tree = parser:parse()[1]
 
         if not tree or not tree:root() then
@@ -678,6 +682,7 @@ module.public = {
     ---@param node TSNode #The node to start at
     ---@param types table|string #If `types` is a table, this function will attempt to match any of the types present in the table.
     -- If the type is a string, the function will attempt to pattern match the `types` value with the node type.
+    ---@return TSNode?
     find_parent = function(node, types)
         ---@type TSNode?
         local _node = node

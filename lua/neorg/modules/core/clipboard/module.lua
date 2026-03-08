@@ -13,6 +13,9 @@ local lib, modules = neorg.lib, neorg.modules
 
 local module = modules.create("core.clipboard")
 
+---@type core.integrations.treesitter
+local ts
+
 module.setup = function()
     return {
         requires = {
@@ -22,9 +25,10 @@ module.setup = function()
 end
 
 module.load = function()
+    ts = module.required["core.integrations.treesitter"]
     vim.api.nvim_create_autocmd("TextYankPost", {
         callback = function(data)
-            if vim.api.nvim_buf_get_option(data.buf, "filetype") ~= "norg" or vim.v.event.operator ~= "y" then
+            if vim.api.nvim_get_option_value("filetype", { buf = data.buf }) ~= "norg" or vim.v.event.operator ~= "y" then
                 return
             end
 
@@ -33,9 +37,9 @@ module.load = function()
             range[2][1] = range[2][1] - 1
 
             for i = range[1][1], range[2][1] do
-                local node = module.required["core.integrations.treesitter"].get_first_node_on_line(data.buf, i)
+                local node = ts.get_first_node_on_line(data.buf, i)
 
-                while node:parent() do
+                while node and node:parent() do
                     if module.private.callbacks[node:type()] then
                         local register = vim.fn.getreg(assert(vim.v.register))
 

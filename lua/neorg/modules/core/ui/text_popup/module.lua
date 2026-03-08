@@ -32,7 +32,7 @@ module.public = {
         local buf = vim.api.nvim_create_buf(false, true)
 
         -- Set the buffer type to "prompt" to give it special behaviour (:h prompt-buffer)
-        vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
+        vim.api.nvim_set_option_value("buftype", "prompt", { buf = buf })
         vim.api.nvim_buf_set_name(buf, name)
 
         -- Create a callback to be invoked on prompt confirmation
@@ -75,7 +75,7 @@ module.public = {
 
         -- HACK(vhyrro): Prevent the "not enough room" error when leaving the window.
         -- See: https://github.com/neovim/neovim/issues/19464
-        vim.api.nvim_win_set_option(winid, "winbar", "")
+        vim.api.nvim_set_option_value("winbar", "", { win = winid })
     end,
 }
 

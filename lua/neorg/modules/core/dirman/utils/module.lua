@@ -31,7 +31,7 @@ module.public = {
         -- Expand special chars like `$`
         local custom_workspace_path = filepath:match("^%$([^/\\]*)[/\\]")
         if custom_workspace_path then
-            ---@type core.dirman
+            ---@type core.dirman?
             local dirman = modules.get_module("core.dirman")
             if not dirman then
                 log.error(table.concat({
@@ -77,9 +77,9 @@ module.public = {
 
     ---Call attempt to edit a file, catches and suppresses the error caused by a swap file being
     ---present. Re-raises other errors via log.error
-    ---@param path string
+    ---@param path string | PathlibPath
     edit_file = function(path)
-        local ok, err = pcall(vim.cmd.edit, path)
+        local ok, err = pcall(vim.cmd.edit, tostring(path))
         if not ok then
             -- Vim:E325 is the swap file error, in which case, a lengthy message already shows to
             -- the user, and we don't have to crash out of this function (which creates a long and

@@ -146,7 +146,7 @@ function module.public.attach_introspector(buffer)
 
             local node_above = module.required["core.integrations.treesitter"].get_first_node_on_line(buf, first - 1)
 
-            do
+            if node_above then
                 local todo_status = node_above:named_child(1)
 
                 if todo_status and todo_status:type() == "detached_modifier_extension" then

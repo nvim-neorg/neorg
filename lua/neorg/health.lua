@@ -83,6 +83,7 @@ return {
         modules.load_module("core.keybinds")
         local keybinds = modules.get_module("core.keybinds")
         local keybinds_config = modules.get_module_config("core.keybinds")
+        assert(keybinds and keybinds_config, "keybinds module missing")
 
         if keybinds_config.default_keybinds then
             local key_healthcheck = keybinds.health()

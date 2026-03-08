@@ -397,7 +397,7 @@ module.private = {
                     vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.decorational, 0, -1)
                     vim.api.nvim_buf_clear_namespace(ui_info.buffer, module.private.namespaces.logical, 0, -1)
 
-                    vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", true)
+                    vim.api.nvim_set_option_value("modifiable", true, { buf = ui_info.buffer })
 
                     module.private.fill_buffer(ui_info)
                     self:render_decorative_text(ui_info, module.public.view_name:upper())
@@ -405,7 +405,7 @@ module.private = {
                     self:render_month_array(ui_info, date, options)
                     self:select_current_day(ui_info, date)
 
-                    vim.api.nvim_buf_set_option(ui_info.buffer, "modifiable", false)
+                    vim.api.nvim_set_option_value("modifiable", false, { buf = ui_info.buffer })
                     vim.api.nvim_set_option_value("winfixbuf", true, { win = ui_info.window })
 
                     return
@@ -563,7 +563,7 @@ module.private = {
         })
 
         local namespace = vim.api.nvim_create_namespace("neorg/calendar-help")
-        vim.api.nvim_buf_set_option(buffer, "modifiable", false)
+        vim.api.nvim_set_option_value("modifiable", false, { buf = buffer })
 
         vim.api.nvim_buf_set_extmark(buffer, namespace, 0, 0, {
             virt_lines = lines,

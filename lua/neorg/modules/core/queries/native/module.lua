@@ -124,7 +124,7 @@ module.public = {
 
     --- Extract content from `nodes` of type { node, bufnr }
     ---@param nodes table
-    ---@param opts table
+    ---@param opts table?
     ---   - opts.all_lines (bool)    if true, will return all lines instead of the first one
     ---@return table
     extract_nodes = function(nodes, opts)

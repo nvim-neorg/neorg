@@ -97,7 +97,7 @@ module.public = {
             return
         end
 
-        while current:parent() do
+        while current and current:parent() do
             if
                 lib.filter(module.config.public.iterables, function(_, iterable)
                     return current:type():match(table.concat({ "^", iterable, "$" })) and iterable or nil

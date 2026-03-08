@@ -190,6 +190,9 @@ module.public = {
                                         "\n" .. vim.treesitter.get_node_text(node, source),
                                         state.parse_as
                                     )
+                                    if not node then
+                                        goto continue
+                                    end
                                     state.parse_as = nil
                                 end
 
@@ -214,6 +217,7 @@ module.public = {
                         table.insert(output, ret)
                     end
                 end
+                ::continue::
             end
 
             -- Recollectors exist to collect all the converted children nodes of a parent node
@@ -309,6 +313,7 @@ module.on_event = function(event)
         -- The old value of `eventignore` is stored here. This is done because the eventignore
         -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
         -- activate the concealer, which not only slows down performance notably but also causes errors.
+        ---@diagnostic disable-next-line: undefined-field
         local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
         vim.loop.fs_scandir(event.content[1], function(err, handle)
