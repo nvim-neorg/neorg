@@ -43,29 +43,21 @@ module.public = {
             return 0
         end
 
-        local indent_data = module.config.public.indents[node:type()] or module.config.public.indents._
-
-        if not indent_data then
+        local config_indent_data = module.config.public.indents[node:type()] or module.config.public.indents._
+        if not config_indent_data then
             return 0
         end
 
-        local _, initial_indent = node:start()
-
-        local indent = 0
-
-        for _, modifier in ipairs(indent_data.modifiers or {}) do
-            if module.config.public.modifiers[modifier] then
-                local ret = module.config.public.modifiers[modifier](buf, node, line, initial_indent) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
-
-                if ret ~= 0 then
-                    indent = ret
-                end
-            end
+        -- Check if the code is within a verbatim block
+        local parent_ranged_verbatim_tag =
+            module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag$")
+        if parent_ranged_verbatim_tag then
+            config_indent_data = module.config.public.indents[parent_ranged_verbatim_tag:type()]
+                or module.config.public.indents._
         end
 
-        local line_len = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):len()
-
         -- Ensure that the cursor is within the `norg` language
+        local line_len = (vim.api.nvim_buf_get_lines(buf, line, line + 1, true)[1] or ""):len()
         local current_lang = vim.treesitter.get_parser(buf, "norg"):language_for_range({
             line,
             line_len,
@@ -75,61 +67,60 @@ module.public = {
 
         -- If it isn't then fall back to `nvim-treesitter`'s indent instead.
         if current_lang:lang() ~= "norg" then
-            -- If we're in a ranged tag then apart from providing nvim-treesitter indents also make sure
-            -- to account for the indentation level of the tag itself.
-            if node:type() == "ranged_verbatim_tag_content" then
-                local lnum = line
-                local start = node:range()
-
-                while lnum > start do
-                    if vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]:match("^%s*$") then
-                        lnum = lnum - 1
-                    else
-                        return vim.fn["nvim_treesitter#indent"]()
-                    end
-                end
-
-                return module.required["core.integrations.treesitter"].get_node_range(node:parent()).column_start
-                    + vim.fn["nvim_treesitter#indent"]()
+            if parent_ranged_verbatim_tag ~= nil then
+                return math.max(
+                    require("nvim-treesitter").indentexpr and require("nvim-treesitter").indentexpr()
+                        or vim.fn["nvim_treesitter#indent"](),
+                    module.required["core.integrations.treesitter"].get_node_range(
+                        ---@diagnostic disable-next-line: param-type-mismatch
+                        parent_ranged_verbatim_tag -- ranged_verbatim_tag, e.g. `@code lua`
+                    ).column_start
+                )
             else
-                return vim.fn["nvim_treesitter#indent"]()
+                return require("nvim-treesitter").indentexpr and require("nvim-treesitter").indentexpr()
+                    or vim.fn["nvim_treesitter#indent"]()
             end
         end
 
-        -- Check if the code is within a verbatim block
-        local ranged_tag =
-            module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag_content")
-        indent_data = ranged_tag and module.config.public.indents[ranged_tag:type()] or indent_data
-
-        -- Indents can be a static value, so account for that here
-        if type(indent_data.indent) == "number" then
-            -- If the indent is -1 then let Neovim indent instead of us
-            if indent_data.indent == -1 then
-                return -1
+        -- Compute indentation of configured modifiers
+        --   - the value of the last modifier that returns a non-zero value is used
+        -- local _, initial_indent = node:start()
+        local initial_indent = vim.fn.indent(line + 1)
+        local modifier_indent = 0
+        for _, modifier in ipairs(config_indent_data.modifiers or {}) do
+            if module.config.public.modifiers[modifier] then
+                local ret = module.config.public.modifiers[modifier](buf, node, line, initial_indent) ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                if ret ~= 0 then
+                    modifier_indent = ret
+                end
             end
-
-            local new_indent = indent + indent_data.indent + (module.config.public.tweaks[node:type()] or 0)
-
-            if (not module.config.public.dedent_excess) and new_indent <= initial_indent then
-                return initial_indent
-            end
-
-            return new_indent
         end
 
-        local calculated_indent = indent_data.indent(buf, node, line, indent, initial_indent) or 0
+        local config_indent = config_indent_data.indent
+        if type(config_indent) == "function" then
+            config_indent = config_indent(buf, node, line, modifier_indent, initial_indent) or 0
+        end
 
-        if calculated_indent == -1 then
+        if config_indent == -1 then
             return -1
         end
 
-        local new_indent = indent + calculated_indent + (module.config.public.tweaks[node:type()] or 0)
+        local computed_indent = config_indent + modifier_indent + (module.config.public.tweaks[node:type()] or 0)
 
-        if (not module.config.public.dedent_excess) and new_indent <= initial_indent then
+        -- Don't dedent if dedent_excess is false
+        if (not module.config.public.dedent_excess) and computed_indent <= initial_indent then
             return initial_indent
         end
 
-        return new_indent
+        if
+            parent_ranged_verbatim_tag
+            and module.required["core.integrations.treesitter"].find_parent(node, "ranged_verbatim_tag_content$")
+            and computed_indent <= initial_indent
+        then
+            return initial_indent
+        end
+
+        return computed_indent
     end,
 
     ---re-evaluate the indent expression for each line in the range, and apply the new indentation
