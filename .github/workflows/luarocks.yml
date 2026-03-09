@@ -2,8 +2,8 @@ name: Push to Luarocks
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   luarocks-upload:
