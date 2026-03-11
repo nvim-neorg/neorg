@@ -28,7 +28,10 @@ module.load = function()
     ts = module.required["core.integrations.treesitter"]
     vim.api.nvim_create_autocmd("TextYankPost", {
         callback = function(data)
-            if vim.api.nvim_get_option_value("filetype", { buf = data.buf }) ~= "norg" or vim.v.event.operator ~= "y" then
+            if
+                vim.api.nvim_get_option_value("filetype", { buf = data.buf }) ~= "norg"
+                or vim.v.event.operator ~= "y"
+            then
                 return
             end
 

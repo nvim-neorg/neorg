@@ -296,8 +296,7 @@ module.public = {
             return
         end
 
-        local selection = ui
-            .begin_selection(link_not_found_buf)
+        local selection = ui.begin_selection(link_not_found_buf)
             :listener({
                 "<Esc>",
             }, function(self)

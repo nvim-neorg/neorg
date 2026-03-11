@@ -115,13 +115,11 @@ local function fill_template_defaults()
         end
     end
 
-    module.config.public.template = vim.iter(module.config.public.template):map(
-        function(elem)
-            if not elem[2] then
-                return lib.filter(default_template, match_first(elem[1]))
-            end
+    module.config.public.template = vim.iter(module.config.public.template):map(function(elem)
+        if not elem[2] then
+            return lib.filter(default_template, match_first(elem[1]))
         end
-    )
+    end)
 end
 
 module.setup = function()

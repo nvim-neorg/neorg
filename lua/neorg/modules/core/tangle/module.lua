@@ -510,7 +510,10 @@ module.on_event = function(event)
             end
             file_str = file:tostring()
             vim.uv.fs_open(file_str, "w", 438, function(werr, fd)
-                assert(not werr and fd, lib.lazy_string_concat("Failed to open file '", file_str, "' for tangling: ", werr))
+                assert(
+                    not werr and fd,
+                    lib.lazy_string_concat("Failed to open file '", file_str, "' for tangling: ", werr)
+                )
 
                 local write_content = table.concat(content, "\n")
                 if module.config.public.report_on_empty and write_content:len() == 0 then
@@ -520,7 +523,10 @@ module.on_event = function(event)
                 end
 
                 vim.uv.fs_write(fd, write_content, 0, function(werr2)
-                    assert(not werr2, lib.lazy_string_concat("Failed to write to '", file_str, "' for tangling: ", werr2))
+                    assert(
+                        not werr2,
+                        lib.lazy_string_concat("Failed to write to '", file_str, "' for tangling: ", werr2)
+                    )
                     tangled_count = tangled_count + 1
                     file_count = file_count - 1
                     if file_count == 0 then
