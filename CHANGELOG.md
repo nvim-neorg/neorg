@@ -1,5 +1,16 @@
 # Changelog
 
+## [9.4.1](https://github.com/nvim-neorg/neorg/compare/v9.4.0...v9.4.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* all of the linter errors and warnings ([dc8853d](https://github.com/nvim-neorg/neorg/commit/dc8853d48cec3abe2758fd183c85eb77e47bdfd4))
+* **ci:** pin nvim-treesitter to v0.9.3 ([ba7d86b](https://github.com/nvim-neorg/neorg/commit/ba7d86bfc167346600f3b2c7b93593d7c14f7a6b))
+* **ci:** try manually skip nvim-treesitter-legacy-api luarock in gendoc action ([800fe61](https://github.com/nvim-neorg/neorg/commit/800fe61fc0e06149c168ab3f1a9606f1d34974ec))
+* **journal:** Remove empty line when using templates ([d4e6b36](https://github.com/nvim-neorg/neorg/commit/d4e6b3665504baa88685c9d2e79446d336dc0594))
+* variable shaddowing is a crime. I guess ([95ce1b6](https://github.com/nvim-neorg/neorg/commit/95ce1b6e45018fe7d36a12dc324dc2cdff8437eb))
+
 ## [9.4.0](https://github.com/nvim-neorg/neorg/compare/v9.3.0...v9.4.0) (2025-12-03)
 
 
