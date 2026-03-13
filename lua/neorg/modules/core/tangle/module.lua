@@ -542,9 +542,11 @@ module.on_event = function(event)
                         )
                     end
                 end)
+                -- luacheck: push ignore 432
                 vim.uv.fs_close(fd, function(err)
                     assert(not err, lib.lazy_string_concat("Failed to close file '", file_str, "' for tangling: ", err))
                 end)
+                -- luacheck: pop
             end)
             ::continue::
         end
