@@ -119,7 +119,8 @@ local function fill_template_defaults()
         if not elem[2] then
             return lib.filter(default_template, match_first(elem[1]))
         end
-    end)
+        return elem
+    end):totable()
 end
 
 module.setup = function()
@@ -372,7 +373,7 @@ module.public = {
         local current_date = ""
         for _, val in ipairs(module.config.public.template) do
             if val[1] == "updated" then
-                current_date = val[2]() ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                current_date = val[2]()
             end
         end
 
@@ -404,7 +405,7 @@ module.public = {
                         range.column_start,
                         range.row_end,
                         range.column_end,
-                        { current_date } ---@diagnostic disable-line -- TODO: type error workaround <pysan3>
+                        { current_date }
                     )
                 end
             end
