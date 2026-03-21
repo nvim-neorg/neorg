@@ -48,7 +48,7 @@ files. There are two ways to combat this:
   ```
 - Create an autocommand using `vim.api.nvim_create_autocmd`:
   ```lua
-  vim.api.nvim_create_autocmd("Filetype", {
+  vim.api.nvim_create_autocmd("FileType", {
       pattern = "norg",
       callback = function()
           vim.keymap.set("n", "my-key-here", "<Plug>(neorg.pivot.list.toggle)", { buffer = true })

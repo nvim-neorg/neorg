@@ -71,7 +71,7 @@ module.setup = function()
 end
 
 module.load = function()
-    vim.api.nvim_create_autocmd("Filetype", {
+    vim.api.nvim_create_autocmd("FileType", {
         pattern = "norg",
         desc = "Attaches the TODO introspector to any Norg buffer.",
         callback = function(ev)

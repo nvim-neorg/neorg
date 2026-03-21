@@ -5,19 +5,48 @@ on:
     branches:
       - main
 
-jobs:
-  build:
-    name: Run tests
-    runs-on: ubuntu-24.04
+# jobs:
+#   build:
+#     name: Run tests
+#     runs-on: ubuntu-24.04
+#
+#     steps:
+#       - uses: actions/checkout@v4
+#       - name: Install TS CLI
+#         uses: tree-sitter/setup-action@v2
+#         with:
+#           install-lib: false
+#       - name: Run tests
+#         uses: nvim-neorocks/nvim-busted-action@v1
+#         with:
+#           nvim_version: stable
+#           luarocks_args: '--server https://lux.lumen-labs.org/rocks-binaries/'
 
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - name: Install TS CLI
-        uses: tree-sitter/setup-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install MSVC Compiler Toolchain
+        uses: ilammy/msvc-dev-cmd@v1
+        if: endsWith(matrix.job.target, '-msvc')
+
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
         with:
-          install-lib: false
+          neovim: true
+          version: stable
+
+      - name: Install Lux
+        uses: lumen-oss/gh-actions-lux@v1
+        with:
+          version: 0.26.4
+
       - name: Run tests
-        uses: nvim-neorocks/nvim-busted-action@v1
-        with:
-          nvim_version: stable
-          luarocks_args: '--server https://lux.lumen-labs.org/rocks-binaries/'
+        run: |
+          lx --no-luarc --nvim --lua-version 5.1 test

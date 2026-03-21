@@ -3,7 +3,7 @@ This file contains a variety of utility functions for writing Neorg tests.
 
 The functions used here should be generalized and moved out into a separate rock on luarocks.org in due time.
 
-Neorg sets up `busted` using `neolua` (a wrapper around neovim) as its test interpreter. This allows access to all
+Neorg sets up `busted` using `nlua` (a wrapper around neovim) as its test interpreter. This allows access to all
 Neovim-related APIs natively. The entire process occurs in the flake.nix file.
 --]]
 

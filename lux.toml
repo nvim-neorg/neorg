@@ -1,0 +1,27 @@
+package = "neorg"
+lua = "5.1"
+
+[source]
+url = "https://github.com/nvim-neorg/$(PACKAGE)/archive/refs/tags/v$(VERSION).zip"
+dev = "git+https://github.com/nvim-neorg/$(PACKAGE).git"
+
+[description]
+summary = "Modernity meets insane extensibility. The future of organizing your life in Neovim."
+maintainer = "vhyrro"
+labels = ["neovim", "nvim", "org-mode", "neovim-plugin", "neorg"]
+license = "GPL-3.0"
+
+[dependencies]
+"lua-utils.nvim" = "1.0.2-1"
+"nui.nvim" = "0.4.0-1"
+"pathlib.nvim" = "~>2.2"
+nvim-nio = "~>1.7"
+tree-sitter-norg = "0.2.4"
+tree-sitter-norg-meta = "0.1.0"
+
+[test_dependencies]
+nlua = "0.3.2-1"
+busted = "2.3.0-1"
+
+[build]
+type = "builtin"
