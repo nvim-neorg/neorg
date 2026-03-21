@@ -10,5 +10,5 @@
 in
   lib.recursiveUpdate luarc
   {
-    Lua.workspace.library = luarc.Lua.workspace.library ++ ["${installed-dependencies}/luarocks/share/lua/5.1/"];
+    workspace.library = luarc.workspace.library ++ ["${installed-dependencies}/luarocks/share/lua/5.1/"];
   }
