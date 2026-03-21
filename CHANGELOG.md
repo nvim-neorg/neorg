@@ -1,5 +1,24 @@
 # Changelog
 
+## [9.5.0](https://github.com/nvim-neorg/neorg/compare/v9.4.0...v9.5.0) (2026-03-21)
+
+
+### Features
+
+* configurable orderd list icons ([9fd7bf9](https://github.com/nvim-neorg/neorg/commit/9fd7bf926e29adeed5f649bdbd45efb625df0960))
+
+
+### Bug Fixes
+
+* all of the linter errors and warnings ([dc8853d](https://github.com/nvim-neorg/neorg/commit/dc8853d48cec3abe2758fd183c85eb77e47bdfd4))
+* **ci:** pin nvim-treesitter to v0.9.3 ([ba7d86b](https://github.com/nvim-neorg/neorg/commit/ba7d86bfc167346600f3b2c7b93593d7c14f7a6b))
+* **ci:** try manually skip nvim-treesitter-legacy-api luarock in gendoc action ([800fe61](https://github.com/nvim-neorg/neorg/commit/800fe61fc0e06149c168ab3f1a9606f1d34974ec))
+* **concealer:** hide virtual text when it goes off-screen due to horizontal scrolling ([e22744a](https://github.com/nvim-neorg/neorg/commit/e22744a8e02bc640cf87911a27c68d4ee60e0435))
+* correct cursor position when moving to a line by its number ([119d79a](https://github.com/nvim-neorg/neorg/commit/119d79acd06af5a056989dcb0768fc37e306772d))
+* **journal:** Remove empty line when using templates ([d4e6b36](https://github.com/nvim-neorg/neorg/commit/d4e6b3665504baa88685c9d2e79446d336dc0594))
+* metagen ([c47bdf0](https://github.com/nvim-neorg/neorg/commit/c47bdf07dbcb6574305b110687a7e9b79f82cf46))
+* variable shaddowing is a crime. I guess ([95ce1b6](https://github.com/nvim-neorg/neorg/commit/95ce1b6e45018fe7d36a12dc324dc2cdff8437eb))
+
 ## [9.4.0](https://github.com/nvim-neorg/neorg/compare/v9.3.0...v9.4.0) (2025-12-03)
 
 
