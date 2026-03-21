@@ -12,7 +12,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install TS CLI
+        uses: tree-sitter/setup-action@v2
+        with:
+          install-lib: false
       - name: Run tests
         uses: nvim-neorocks/nvim-busted-action@v1
         with:
           nvim_version: stable
+          luarocks_args: '--server https://lux.lumen-labs.org/rocks-binaries/'
