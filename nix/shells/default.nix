@@ -9,9 +9,10 @@
     packages = with pkgs; [
       lua-language-server
       stylua
-      lua51Packages.luacheck
+      luajitPackages.luacheck
       nil
-      lua5_1
+      lux-cli
+      luajitPackages.lux-lua
     ];
   };
 }
