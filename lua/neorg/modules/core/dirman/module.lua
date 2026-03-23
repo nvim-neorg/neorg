@@ -239,7 +239,7 @@ module.public = {
         workspace_path = Path(workspace_path):resolve():to_absolute()
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
-        -- Save the new workspace if the save file
+        -- Save the new workspace in the save file
         dirman_utils = module.required["core.dirman.utils"]
         dirman_utils.save_workspace(workspace_name, workspace_path, module.config.public.workspaces_save_file)
         -- Broadcast the workspace_added event with the newly added workspace as the content
