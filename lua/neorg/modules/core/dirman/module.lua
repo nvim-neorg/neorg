@@ -236,11 +236,6 @@ module.public = {
             return false
         end
 
-        -- Print all key-value pairs
-        for key, value in pairs(module.config.public.workspaces) do
-            vim.notify("Key: " .. key .. ", Value: " .. value)
-        end
-
         workspace_path = Path(workspace_path):resolve():to_absolute()
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
