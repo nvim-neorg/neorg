@@ -23,6 +23,7 @@ require('neorg').setup {
                     my_other_notes = "~/work/notes",
                 },
                 index = "index.norg", -- The name of the main (root) .norg file
+                workspaces_save_file = "~/notes/workspaces_save_file"
             }
         }
     }
@@ -82,6 +83,12 @@ module.load = function()
 
     dirman_utils = module.required["core.dirman.utils"]
     ui = module.required["core.ui"]
+
+    -- Load workspaces from the save file
+    local saved_workspaces = dirman_utils.load_workspaces(module.config.public.workspaces_save_file)
+    for name, workspace_location in pairs(saved_workspaces) do
+        module.config.public.workspaces[name] = workspace_location
+    end
 
     vim.keymap.set("", "<Plug>(neorg.dirman.new-note)", module.public.new_note)
 
@@ -145,6 +152,9 @@ module.config.public = {
     -- Whether to use core.ui.text_popup for `dirman.new.note` event.
     -- if `false`, will use vim's default `vim.ui.input` instead.
     use_popup = true,
+
+    -- Where workspaces names and paths will be saved if they are dynamically created
+    workspaces_save_file = nil
 }
 
 module.private = {
@@ -235,6 +245,9 @@ module.public = {
         workspace_path = Path(workspace_path):resolve():to_absolute()
         -- Set the new workspace and its path accordingly
         module.config.public.workspaces[workspace_name] = workspace_path
+        -- Save the new workspace in the save file
+        dirman_utils = module.required["core.dirman.utils"]
+        dirman_utils.save_workspace(workspace_name, workspace_path, module.config.public.workspaces_save_file)
         -- Broadcast the workspace_added event with the newly added workspace as the content
         modules.broadcast_event(
             assert(
@@ -246,6 +259,19 @@ module.public = {
         module.public.sync()
 
         return true
+    end,
+    --- Remove a workspace from the workspace list and from the save file.
+    ---@return boolean True if the workspace is removed successfully, false otherwise. It will fail if the workspace is not found in the save file
+    ---@param workspace_name string #The unique name of the workspace to be deleted
+    delete_workspace = function(workspace_name)
+        dirman_utils = module.required["core.dirman.utils"]
+        local saved_workspaces = dirman_utils.load_workspaces(module.config.public.workspaces_save_file)
+        if saved_workspaces[workspace_name] == nil then
+            return false
+        end
+        module.config.public.workspaces[workspace_name] = nil
+        saved_workspaces[workspace_name] = nil
+        return dirman_utils.save_workspaces(saved_workspaces, module.config.public.workspaces_save_file)
     end,
     --- If the file we opened is within a workspace directory, returns the name of the workspace, else returns nil
     get_workspace_match = function()
@@ -362,7 +388,7 @@ module.public = {
             return
         end
 
-        vim.cmd("e " .. (workspace / path):cmd_string() .. " | w")
+        vim.cmd("e " .. (workspace / path):cmd_string())
     end,
     --- Reads the neorg_last_workspace.txt file and loads the cached workspace from there
     set_last_workspace = function()
