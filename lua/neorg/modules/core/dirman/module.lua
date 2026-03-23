@@ -149,6 +149,9 @@ module.config.public = {
     -- Whether to use core.ui.text_popup for `dirman.new.note` event.
     -- if `false`, will use vim's default `vim.ui.input` instead.
     use_popup = true,
+
+    -- Where workspaces names and paths will be saved if they are dynamically created
+    workspaces_save_file = nil
 }
 
 module.private = {
