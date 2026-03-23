@@ -41,16 +41,16 @@ module.public = {
                 return
             end
             -- If the user has given an empty workspace name (i.e. `$/myfile`)
-            if custom_workspace_location:len() == 0 then
+            if custom_workspace_path:len() == 0 then
                 filepath = dirman.get_current_workspace()[2] / filepath:relative_to(Path("$"))
             else -- If the user provided a workspace name (i.e. `$my-workspace/myfile`)
-                local workspace = dirman.get_workspace(custom_workspace_location)
+                local workspace = dirman.get_workspace(custom_workspace_path)
                 if not workspace then
                     local msg = "Unable to expand path: workspace '%s' does not exist"
-                    log.warn(string.format(msg, custom_workspace_location))
+                    log.warn(string.format(msg, custom_workspace_path))
                     return
                 end
-                filepath = workspace / filepath:relative_to(Path("$" .. custom_workspace_location))
+                filepath = workspace / filepath:relative_to(Path("$" .. custom_workspace_path))
             end
         elseif filepath:is_relative() then
             relative = true
