@@ -58,13 +58,13 @@ local utils = require("neorg.core.utils")
 --- Public configurations may be tweaked by the user from the `neorg.setup()` function,
 --- whereas private configurations are for internal use only.
 --- @class (exact) neorg.module.configuration
---- @field custom? table         Internal table that tracks the differences (changes) between the default `public` table and the new (altered) `public` table. It contains only the tables that the user has altered in their own configuration.
---- @field public private? table Internal configuration variables that may be tweaked by the developer.
---- @field public public? table  Configuration variables that may be tweaked by the user.
+--- @field custom? table        Internal table that tracks the differences (changes) between the default `public` table and the new (altered) `public` table. It contains only the tables that the user has altered in their own configuration.
+--- @field public private table Internal configuration variables that may be tweaked by the developer.
+--- @field public public table  Configuration variables that may be tweaked by the user.
 
 --- @class (exact) neorg.module.events
---- @field defined? { [string]: neorg.event }              Lists all events defined by this module.
---- @field subscribed? { [string]: { [string]: boolean } } Lists the events that the module is subscribed to.
+--- @field defined { [string]: neorg.event }              Lists all events defined by this module.
+--- @field subscribed { [string]: { [string]: boolean } } Lists the events that the module is subscribed to.
 
 --- @alias neorg.module.setup { success: boolean, requires?: string[], replaces?: string, replace_merge?: boolean, wants?: string[] }
 
@@ -72,16 +72,16 @@ local utils = require("neorg.core.utils")
 --- A module is an object that contains a set of hooks which are invoked by Neorg whenever something in the
 --- environment occurs. This can be an event, a simple act of the module being loaded or anything else.
 --- @class (exact) neorg.module
---- @field config? neorg.module.configuration The configuration for the module.
---- @field events? neorg.module.events Describes all information related to events for this module.
+--- @field config neorg.module.configuration The configuration for the module.
+--- @field events neorg.module.events Describes all information related to events for this module.
 --- @field examples? table<string, function> Contains examples of how to use the modules that users or developers may sift through.
---- @field imported? table<string, neorg.module> Imported submodules of the given module. Contrary to `required`, which only exposes the public API of a module, imported modules can be accessed in their entirety.
+--- @field imported table<string, neorg.module> Imported submodules of the given module. Contrary to `required`, which only exposes the public API of a module, imported modules can be accessed in their entirety.
 --- @field load? fun() Function that is invoked once the module is considered "stable", i.e. after all dependencies are loaded. Perform your main loading routine here.
 --- @field name string The name of the module.
 --- @field neorg_post_load? fun() Function that is invoked after all modules are loaded. Useful if you want the Neorg environment to be fully set up before performing some task.
 --- @field path string The full path to the module (a more verbose version of `name`). May be used in lua's `require()` statements.
---- @field public private? table A convenience table to place all of your private variables that you don't want to expose.
---- @field public public? neorg.module.public Every module can expose any set of information it sees fit through this field. All functions and variables declared in this table will be visiable to any other module loaded.
+--- @field public private table A convenience table to place all of your private variables that you don't want to expose.
+--- @field public public neorg.module.public Every module can expose any set of information it sees fit through this field. All functions and variables declared in this table will be visible to any other module loaded.
 --- @field required? neorg.module.resolver Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
 --- @field setup? fun(): neorg.module.setup? Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
@@ -194,17 +194,15 @@ function modules.create(name, imports)
 
             if not modules.load_module(fullpath) then
                 log.error("Unable to load import '" .. fullpath .. "'! An error occured (see traceback below):")
-                assert(false) -- Halt execution, no recovering from this error...
+                error() -- Halt execution, no recovering from this error...
             end
 
             new_module.imported[fullpath] = modules.loaded_modules[fullpath]
         end
     end
 
-    if name then
-        new_module.name = name
-        new_module.path = "modules." .. name
-    end
+    new_module.name = name
+    new_module.path = "modules." .. name
 
     return new_module
 end

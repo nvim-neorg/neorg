@@ -58,51 +58,29 @@ end
 
 module.load = function()
     if module.config.public.configure_parsers then
-        -- luacheck: push ignore
-
-        -- compat: nvim-treesitter master requires the extra function call, main does not
-        local parser_configs = require("nvim-treesitter.parsers")
-        if parser_configs.get_parser_configs then
-            parser_configs = parser_configs.get_parser_configs()
+        for _, name in ipairs { "norg", "norg_meta" } do
+            local path, err = package.searchpath("parser." .. name, package.cpath)
+            if path and not err then
+                vim.opt.rtp:prepend({ path:gsub(("parser/%s%%.so"):format(name), "") })
+            end
         end
-
-        parser_configs.norg = {
-            install_info = module.config.public.parser_configs.norg,
-        }
-
-        parser_configs.norg_meta = {
-            install_info = module.config.public.parser_configs.norg_meta,
-        }
-
-        modules.await("core.neorgcmd", function(neorgcmd)
-            neorgcmd.add_commands_from_table({
-                ["sync-parsers"] = {
-                    args = 0,
-                    name = "sync-parsers",
-                },
-            })
-        end)
-
-        -- luacheck: pop
-
+    end
+    if module.config.public.warn_missing_parsers then
         vim.api.nvim_create_autocmd("BufEnter", {
             pattern = "*.norg",
             once = true,
             callback = function()
                 module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
+                module.public.meta_parser_path = vim.api.nvim_get_runtime_file("parser/norg_meta.so", false)[1]
 
-                if module.public.parser_path then
-                    return
+                print("module.public.parser_path:", module.public.parser_path)
+                print("module.public.meta_parser_path:", module.public.meta_parser_path)
+
+                if not module.public.parser_path then
+                    vim.notify("norg treesitter parser was not found! Many plugin features will not work.", vim.log.levels.WARN)
                 end
-
-                if module.config.public.install_parsers then
-                    require("nvim-treesitter.install").commands.TSInstallSync["run!"]("norg", "norg_meta")
-                    module.public.parser_path = vim.api.nvim_get_runtime_file("parser/norg.so", false)[1]
-                else
-                    assert(
-                        false,
-                        "Neorg's parser is not installed! Run `:Neorg sync-parsers` to install it, then restart Neovim."
-                    )
+                if not module.public.meta_parser_path then
+                    vim.notify("norg_meta treesitter parser was not found! Some plugin features will not work.", vim.log.levels.WARN)
                 end
             end,
         })
@@ -132,30 +110,10 @@ end
 
 module.config.public = {
     --- If true will auto-configure the parsers to use the recommended setup.
-    --  Set to false only if you know what you're doing, or if the setting messes
-    --  with your personal configuration.
+    --- Set to false only if you install the parsers some other way (ie. nix)
     configure_parsers = true,
-    --- If true will automatically install Norg parsers if they are not present.
-    install_parsers = true,
-    --- Configurations for each parser as required by `nvim-treesitter`.
-    --  If you would like to tweak your parser configs you may do so here.
-    parser_configs = {
-        -- Configuration for the mainline norg parser.
-        norg = {
-            url = "https://github.com/nvim-neorg/tree-sitter-norg",
-            files = { "src/parser.c", "src/scanner.cc" },
-            revision = "6348056b999f06c2c7f43bb0a5aa7cfde5302712",
-            use_makefile = true,
-        },
-        -- Configuration for the metadata parser (used to parse the contents
-        -- of `@document.meta` blocks).
-        norg_meta = {
-            url = "https://github.com/nvim-neorg/tree-sitter-norg-meta",
-            files = { "src/parser.c" },
-            revision = "a479d1ca05848d0b51dd25bc9f71a17e0108b240",
-            use_makefile = true,
-        },
-    },
+    ---Show a warning when neorg can't find required treesitter parsers
+    warn_missing_parsers = true,
 }
 
 ---@class core.integrations.treesitter
