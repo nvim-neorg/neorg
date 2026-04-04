@@ -14,7 +14,6 @@ dependencies = {
 	"lua == 5.1",
     "nvim-nio ~> 1.7",
     "lua-utils.nvim == 1.0.2",
-    "plenary.nvim == 0.1.4",
     "nui.nvim == 0.3.0",
     "pathlib.nvim ~> 2.2",
     -- "norgopolis-client.lua >= 0.2.0",

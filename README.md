@@ -147,7 +147,7 @@ It is not recommended to use packer as it is now unmaintained.
 ```lua
 use {
   "nvim-neorg/neorg",
-  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "plenary.nvim", "pathlib.nvim", "nvim-treesitter-legacy-api" },
+  rocks = { "lua-utils.nvim", "nvim-nio", "nui.nvim", "pathlib.nvim", "nvim-treesitter-legacy-api" },
   tag = "*", -- Pin Neorg to the latest stable release
   config = function()
       require("neorg").setup()

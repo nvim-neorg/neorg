@@ -12,7 +12,7 @@ in
     nativeBuildInputs = [lua51Packages.luarocks wget];
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
-    outputHash = "sha256-tvMqTgTshVApj3muQyvwj+as/8b7tw1r0BlCTpMlGuU=";
+    outputHash = "sha256-gW/P4LSvj84erNgVk9qIwSknpvkf4ZhoqR3PJg5l/Hw=";
   } ''
     mkdir $PWD/home
     export HOME=$PWD/home
