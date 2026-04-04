@@ -1,5 +1,8 @@
 TODO: Rewrite parts of this to be more clear (remove the quotes).
 
+> [!WARNING]
+> this doc is so out of date I almost want to remove the entire thing.
+
 # Understanding Neorg dependencies
 
 Neorg depends on a number of moving parts and will only continue to accrue more dependencies to deliver on many of the features in it's ROADMAP. Many of these features, like tree-sitter support in Neovim, are still marked experimental in their parent projects. This document is intended to help Neorg users navigate these dependencies, but users are always encouraged to refer to the parent projects for appropriate documentation.
@@ -158,7 +161,6 @@ require('lazy').setup({
             },
         },
         dependencies = {
-            { "nvim-lua/plenary.nvim", },
             {
                 -- YOU ALMOST CERTAINLY WANT A MORE ROBUST nvim-treesitter SETUP
                 -- see https://github.com/nvim-treesitter/nvim-treesitter
