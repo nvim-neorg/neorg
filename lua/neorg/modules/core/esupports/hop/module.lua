@@ -24,7 +24,7 @@ mapping them):
 --]]
 
 local neorg = require("neorg.core")
-local config, lib, log, modules, utils = neorg.config, neorg.lib, neorg.log, neorg.modules, neorg.utils
+local lib, log, modules, utils = neorg.lib, neorg.log, neorg.modules, neorg.utils
 
 local module = modules.create("core.esupports.hop")
 
@@ -152,31 +152,6 @@ module.public = {
 
         local located_link_information = module.public.locate_link_target(parsed_link)
 
-        local function os_open_link(link_location)
-            local o = {}
-            if config.os_info == "windows" then
-                o.command = "rundll32.exe"
-                o.args = { "url.dll,FileProtocolHandler", link_location }
-            else
-                o.args = { link_location }
-                if config.os_info == "linux" then
-                    o.command = "xdg-open"
-                elseif config.os_info == "mac" then
-                    o.command = "open"
-                elseif config.os_info == "wsl2" then
-                    o.command = "wslview"
-                    -- The file uri should be decoded when being transformed to a unix path.
-                    -- The decoding step is temporarily missing from wslview (https://github.com/wslutilities/wslu/issues/295),
-                    -- so we work around the problem by doing the transformation before invoking wslview.
-                    o.args[1] = vim.uri_to_fname(link_location)
-                elseif config.os_info == "wsl" then
-                    o.command = "explorer.exe"
-                end
-            end
-
-            require("plenary.job"):new(o):start()
-        end
-
         local function open_split()
             if open_mode then
                 if open_mode == "vsplit" then
@@ -199,7 +174,7 @@ module.public = {
 
         if located_link_information then
             if open_mode == "external" then
-                os_open_link(located_link_information.uri or located_link_information.path)
+                vim.ui.open(located_link_information.uri or located_link_information.path)
                 return
             end
 
@@ -214,7 +189,7 @@ module.public = {
 
                 -- If we're dealing with a URI, simply open the URI in the user's preferred method
                 external_app = function()
-                    os_open_link(located_link_information.uri)
+                    vim.ui.open(located_link_information.uri)
                 end,
 
                 -- If we're dealing with an external file, open it up in another Neovim buffer (unless otherwise applicable)
