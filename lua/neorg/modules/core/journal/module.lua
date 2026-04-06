@@ -31,8 +31,11 @@ Some aliases exist for convenience (and backwards compatibility):
 - `:Neorg journal yesterday|today|tomorrow`, are aliases for `:Neorg journal previous|current|next
 daily`. (as such, you cannot name a periodic journal "today", "yesterday", or "tomorrow").
 
-The `:Neorg journal template <name>` command creates or opens a template file which will be used as
-the base whenever a new journal entry is created.
+`:Neorg journal next_workday|prev_workday` commands skip weekends and holidays (supplied by user),
+useful in a work environment
+
+The `:Neorg journal template <name>` command creates or opens a template file which will be copied
+whenever a new journal entry is created.
 
 Last but not least, the `:Neorg journal toc open|update <name>` commands open or create/update
 a Table of Contents file found in the root of your journal folder. Each journal has its own ToC that
@@ -42,7 +45,7 @@ weekly` will create a file that references all of the weekly journals.
 
 local neorg = require("neorg.core")
 local Path = require("pathlib")
-local config, log, modules = neorg.config, neorg.log, neorg.modules
+local config, lib, log, modules = neorg.config, neorg.lib, neorg.log, neorg.modules
 
 local tempus ---@type core.tempus
 local dirman ---@type core.dirman
@@ -116,6 +119,10 @@ module.config.public = {
     -- }
     -- ```
     journals = {},
+
+    -- List of dates that {prev,next}_workday will skip
+    -- `os.time({ month = months["January"], day = 1, year = 2026 })`
+    holidays = {},
 }
 
 module.config.private = {
@@ -143,6 +150,10 @@ module.load = function()
 
     ---@type PathlibPath
     module.config.private.journal_folder = Path(module.config.public.journal_folder)
+
+    module.config.private.holidays = vim.iter(module.config.public.holidays):map(function(t)
+        return os.date("*t", t)
+    end)
 
     if module.config.private.strategies[module.config.public.strategy] then
         module.config.public.strategy = module.config.private.strategies[module.config.public.strategy]
@@ -281,6 +292,10 @@ module.load = function()
                         name = "journal.previous",
                         complete = { journal_names },
                     },
+                    prev_workday = {
+                        args = 0,
+                        name = "journal.prev_workday",
+                    },
                     current = {
                         min_args = 0,
                         max_args = 1,
@@ -292,6 +307,10 @@ module.load = function()
                         max_args = 1,
                         name = "journal.next",
                         complete = { journal_names },
+                    },
+                    next_workday = {
+                        args = 0,
+                        name = "journal.next_workday",
                     },
                     custom = {
                         min_args = 1,
@@ -384,6 +403,45 @@ module.private = {
         local journal = module.config.public.journals[journal_name]
         local current = module.private.get_period_date(journal_name)
         module.public.open_journal(journal_name, tempus.add_time(current, journal.period))
+    end,
+
+    ---@param day osdate
+    ---@param direction number
+    ---@return number # return of os.time
+    workdays = function(day, direction)
+        day.day = day.day + 1 * direction
+        local x = 0
+        while
+            day.wday <= 2
+            or module.config.private.holidays:any(function(holiday)
+                return holiday.day == day.day and holiday.month == day.month and day.year == holiday.year
+            end)
+        do
+            day.day = day.day + 1 * direction
+            day.wday = lib.number_wrap(day.wday + 1 * direction, 1, 7)
+            x = x + 1
+            if x > 10 then
+                log.error("10 iterations of yesterweekday and we didn't find a valid day")
+                break
+            end
+        end
+        return os.time(day)
+    end,
+
+    -- skip weekends and holidays
+    journal_previous_workday = function()
+        print("uhhh")
+        local day = os.date("*t", os.time()) --[[@as osdate]]
+        P({day = day})
+        print("module.private.workdays(day, -1):", module.private.workdays(day, -1))
+        module.public.open_journal("daily", module.private.workdays(day, -1))
+    end,
+
+    -- skip weekends and holidays
+    journal_next_workday = function()
+        print("next?")
+        local day = os.date("*t", os.time()) --[[@as osdate]]
+        module.public.open_journal("daily", module.private.workdays(day, 1))
     end,
 
     ---Get the date at the start of the period which contains the given time for the given journal.
@@ -647,6 +705,8 @@ local event_handlers = {
     ["core.neorgcmd.events.journal.previous"] = module.private.journal_previous,
     ["core.neorgcmd.events.journal.current"] = module.private.journal_current,
     ["core.neorgcmd.events.journal.next"] = module.private.journal_next,
+    ["core.neorgcmd.events.journal.prev_workday"] = module.private.journal_previous_workday,
+    ["core.neorgcmd.events.journal.next_workday"] = module.private.journal_next_workday,
     ["core.neorgcmd.events.journal.yesterday"] = module.private.journal_yesterday,
     ["core.neorgcmd.events.journal.tomorrow"] = module.private.journal_tomorrow,
     ["core.neorgcmd.events.journal.today"] = module.private.journal_today,
@@ -670,6 +730,8 @@ module.events.subscribed = {
         ["journal.previous"] = true,
         ["journal.current"] = true,
         ["journal.next"] = true,
+        ["journal.prev_workday"] = true,
+        ["journal.next_workday"] = true,
         ["journal.custom"] = true,
         ["journal.template"] = true,
         ["journal.toc.update"] = true,
