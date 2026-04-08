@@ -58,13 +58,18 @@ end
 
 module.load = function()
     if module.config.public.configure_parsers then
-        for _, lang in ipairs { "norg", "norg_meta" } do
+        for _, lang in ipairs({ "norg", "norg_meta" }) do
             local path, err = package.searchpath("parser." .. lang, package.cpath)
             if path and not err then
                 vim.treesitter.language.add(lang, { path = path })
-            elseif module.config.public.warn_missing_parsers and 0 == #vim.api.nvim_get_runtime_file("parser/" .. lang .. ".so", true) then
-                vim.notify(lang .. " treesitter parser was not found! Many plugin features will not work.",
-                    vim.log.levels.WARN)
+            elseif
+                module.config.public.warn_missing_parsers
+                and 0 == #vim.api.nvim_get_runtime_file("parser/" .. lang .. ".so", true)
+            then
+                vim.notify(
+                    lang .. " treesitter parser was not found! Many plugin features will not work.",
+                    vim.log.levels.WARN
+                )
             end
         end
     end
@@ -73,7 +78,7 @@ module.load = function()
         pattern = "norg",
         callback = function()
             vim.treesitter.start()
-        end
+        end,
     })
 
     vim.keymap.set(
