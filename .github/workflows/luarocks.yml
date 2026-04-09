@@ -5,6 +5,7 @@ on:
     tags: # Will upload to luarocks.org when a tag is pushed
       - "*"
   pull_request: # Will test a local install without uploading to luarocks.org
+  workflow_dispatch: # when the above doesn't work
 
 jobs:
   luarocks-upload:
