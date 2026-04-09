@@ -24,11 +24,9 @@ jobs:
           dependencies: |
             nvim-nio ~> 1.7
             lua-utils.nvim == 1.0.2
-            plenary.nvim == 0.1.4
             nui.nvim == 0.3.0
             pathlib.nvim ~> 2.2
             tree-sitter-norg == 0.2.6
             tree-sitter-norg-meta == 0.1.0
           test_dependencies: |
             nlua
-            nvim-treesitter-legacy-api == 0.9.2
