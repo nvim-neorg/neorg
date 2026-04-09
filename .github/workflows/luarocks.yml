@@ -24,7 +24,6 @@ jobs:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
           version: ${{ env.LUAROCKS_VERSION }}
-          extra_luarocks_args: --server https://lux.lumen-labs.org/rocks-binaries/
           dependencies: |
             nvim-nio ~> 1.7
             lua-utils.nvim == 1.0.2
