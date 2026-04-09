@@ -1,5 +1,16 @@
 # Changelog
 
+## [9.6.4](https://github.com/nvim-neorg/neorg/compare/v9.6.3...v9.6.4) (2026-04-09)
+
+
+### Bug Fixes
+
+* **ci:** cpp compiler ([8db04c5](https://github.com/nvim-neorg/neorg/commit/8db04c594d849b04db80f243770c6a14f008925c))
+* **ci:** cpp env var ([483f36a](https://github.com/nvim-neorg/neorg/commit/483f36a409d12fd7fddea0375b25a92157c3e35f))
+* **ci:** install TS CLI ([a16f7e1](https://github.com/nvim-neorg/neorg/commit/a16f7e12b5456257ab1caa183312aeba52ee8003))
+* **ci:** ugh ([aeca7d1](https://github.com/nvim-neorg/neorg/commit/aeca7d192742c459af82e1f2ec2824c868fd1e8f))
+* trying to get release please to fix itself ([ca3cf89](https://github.com/nvim-neorg/neorg/commit/ca3cf8933b59e008d0f75e98621379167aed1821))
+
 ## [9.6.3](https://github.com/nvim-neorg/neorg/compare/v9.6.2...v9.6.3) (2026-04-09)
 
 
