@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.6.1](https://github.com/nvim-neorg/neorg/compare/v9.6.0...v9.6.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* **ci:** uhhh.. compiler? ([b79fb2e](https://github.com/nvim-neorg/neorg/commit/b79fb2e2f22894cd4fbf38ea8bb76e1facaab712))
+
 ## [9.6.0](https://github.com/nvim-neorg/neorg/compare/v9.5.0...v9.6.0) (2026-04-09)
 
 
