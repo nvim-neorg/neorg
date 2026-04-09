@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.6.3](https://github.com/nvim-neorg/neorg/compare/v9.6.2...v9.6.3) (2026-04-09)
+
+
+### Bug Fixes
+
+* **ci:** use lumen rocks server for test install ([087d825](https://github.com/nvim-neorg/neorg/commit/087d825914e9d698578a9d597156f9249fa8beb2))
+
 ## [9.6.2](https://github.com/nvim-neorg/neorg/compare/v9.6.1...v9.6.2) (2026-04-09)
 
 
