@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.6.2](https://github.com/nvim-neorg/neorg/compare/v9.6.1...v9.6.2) (2026-04-09)
+
+
+### Bug Fixes
+
+* **ci:** back to luarocks publish but add compiler ([a17ad0f](https://github.com/nvim-neorg/neorg/commit/a17ad0f5a31054ff0780eee8027a63c311b37127))
+
 ## [9.6.1](https://github.com/nvim-neorg/neorg/compare/v9.6.0...v9.6.1) (2026-04-09)
 
 
