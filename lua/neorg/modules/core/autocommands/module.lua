@@ -45,7 +45,7 @@ local module = modules.create("core.autocommands")
 ---@param name string #The name of the autocommand that was just triggered
 ---@param triggered_from_norg boolean #If true, that means we have received this event as part of a *.norg autocommand
 ---@param ev? table the original event data
-function _neorg_module_autocommand_triggered(name, triggered_from_norg, ev)
+function _neorg_module_autocommand_triggered(name, triggered_from_norg, ev) ---@diagnostic disable-line: lowercase-global
     local event = modules.create_event(module, name, { norg = triggered_from_norg }, ev)
     assert(event)
     modules.broadcast_event(event)
