@@ -1,5 +1,12 @@
 # Changelog
 
+## [9.6.0](https://github.com/nvim-neorg/neorg/compare/v9.5.0...v9.6.0) (2026-04-09)
+
+
+### Features
+
+* **ci:** use lux to publish ([eff018d](https://github.com/nvim-neorg/neorg/commit/eff018d44985b932b8c87427711bee89a0bc3dda))
+
 ## [9.5.0](https://github.com/nvim-neorg/neorg/compare/v9.4.0...v9.5.0) (2026-04-09)
 
 
