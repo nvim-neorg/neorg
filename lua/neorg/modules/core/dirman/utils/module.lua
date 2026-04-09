@@ -101,6 +101,46 @@ module.public = {
         local res = module.public.expand_pathlib(path, raw_path)
         return res and res:tostring() or nil
     end,
+    save_workspace = function(name, workspace_location, workspaces_save_file)
+        local path = vim.fn.expand(workspaces_save_file)
+        local file = io.open(path, "a")
+        if file == nil then
+            log.error(string.format("Failed to open workspace save file : %s.", workspaces_save_file))
+            return
+        end
+        file:write(string.format("%s = %s\n", name, workspace_location))
+        file:close()
+    end,
+    load_workspaces = function(workspaces_save_file)
+        local workspaces = {}
+        if workspaces_save_file == nil then
+            return workspaces
+        end
+        local path = vim.fn.expand(workspaces_save_file)
+        local file = io.open(path, "r")
+        if file == nil then
+            return workspaces
+        end
+        for line in file:lines() do
+            local name, workspace_location = line:match("^(.-) = (.*)$")
+            workspaces[name] = workspace_location
+        end
+        file:close()
+        return workspaces
+    end,
+    save_workspaces = function(workspaces, workspaces_save_file)
+        local path = vim.fn.expand(workspaces_save_file)
+        local file = io.open(path, "w")
+        if file == nil then
+            log.error(string.format("Failed to open workspace save file : %s.", workspaces_save_file))
+            return false
+        end
+        for name, workspace_location in pairs(workspaces) do
+            file:write(string.format("%s = %s\n", name, workspace_location))
+        end
+        file:close()
+        return true
+    end,
 }
 
 return module
