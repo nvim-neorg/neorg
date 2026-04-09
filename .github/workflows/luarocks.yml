@@ -13,9 +13,9 @@ jobs:
         with:
           fetch-depth: 0 # Required to count the commits
 
-      - name: Install MSVC Compiler Toolchain
-        uses: ilammy/msvc-dev-cmd@v1
-        if: endsWith(matrix.job.target, '-msvc')
+      - name: Install TS CLI
+        uses: tree-sitter/setup-action@v2
+
       - name: Get Version
         run: echo "LUAROCKS_VERSION=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: LuaRocks Upload
