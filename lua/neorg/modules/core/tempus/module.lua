@@ -18,7 +18,7 @@ mapping them):
 --]]
 
 local neorg = require("neorg.core")
-local lib, modules, utils = neorg.lib, neorg.modules, neorg.utils
+local lib, modules, utils, log = neorg.lib, neorg.modules, neorg.utils, neorg.log
 
 local module = modules.create("core.tempus")
 
@@ -230,6 +230,7 @@ module.public = {
     ---@return osdate #A Lua date
     to_lua_date = function(parsed_date)
         local now = os.date("*t") --[[@as osdate]]
+        now.isdst = nil
         local parsed = os.time(vim.tbl_deep_extend("force", now, {
             day = parsed_date.day,
             month = parsed_date.month and parsed_date.month.number or nil,
@@ -444,6 +445,103 @@ module.public = {
                 prompt = "Date: ",
             }, callback)
         end
+    end,
+
+    ---add some time to a given date
+    ---@param date Date | number
+    ---@param elapsed_time { year: number?, month: number?, day: number? }
+    ---@return number
+    add_time = function(date, elapsed_time)
+        if type(date) == "number" then
+            date = module.public.to_date(os.date("*t", date) --[[@as osdate]])
+        end
+        local lua_date = module.public.to_lua_date(date)
+        lua_date.year = lua_date.year + (elapsed_time.year or 0)
+        lua_date.month = lua_date.month + (elapsed_time.month or 0)
+        lua_date.day = lua_date.day + (elapsed_time.day or 0)
+        return os.time(lua_date --[[@as osdateparam]])
+    end,
+
+    ---add some time to a given date
+    ---@param date Date | number
+    ---@param elapsed_time { year: number?, month: number?, day: number? }
+    ---@return number
+    sub_time = function(date, elapsed_time)
+        if type(date) == "number" then
+            date = module.public.to_date(os.date("*t", date) --[[@as osdate]])
+        end
+        local lua_date = module.public.to_lua_date(date)
+        lua_date.year = lua_date.year - (elapsed_time.year or 0)
+        lua_date.month = lua_date.month - (elapsed_time.month or 0)
+        lua_date.day = lua_date.day - (elapsed_time.day or 0)
+        return os.time(lua_date --[[@as osdateparam]])
+    end,
+
+    ---convert a date format string into a lua pattern that will match strings produced by the
+    ---date format string. Creates capture groups around %Y, %m, and %d
+    ---@param format_str string
+    ---@return string?
+    date_format_to_lua_pattern = function(format_str)
+        local illegal_date_format_params = {
+            "%%c", -- current date time formatted according to locale
+            "%%C", -- current century number.. like what the fuck?
+            "%%G", -- wtf is this?
+            "%%g", -- ^
+            "%%r", -- another locale dependant full time format
+            "%%x", -- ^
+            "%%X", -- ^
+            "%%z", -- timezone, why are you putting this in a filename?
+            "%%Z", -- timezone, why are you putting this in a filename?
+        }
+
+        for _, pat in ipairs(illegal_date_format_params) do
+            if format_str:match(pat) then
+                log.error("Disallowed date format str provided to `date_format_to_lua_pattern`: " .. pat)
+                return nil
+            end
+        end
+
+        -- meta substitutions
+        format_str = format_str
+            :gsub("%%F", "%%Y-%%m-%%d")
+            :gsub("%%D", "%%m/%%d/%%y")
+            :gsub("%%R", "%%H:%%M")
+            :gsub("%%T", "%%H:%%M:%%S")
+            :gsub("%%h", "%%b")
+            :gsub("%%k", "%%e")
+            :gsub("%%l", "%%e")
+
+        -- NOTE: Before this substitution, a `%d` on the right side means "the day of the month"
+        format_str = format_str
+            :gsub("%%d", "(%%d%%d)")
+            :gsub("%%e", "[%%d ]%%d")
+            :gsub("%%u", "%%d")
+            :gsub("%%w", "%%d")
+            :gsub("%%m", "(%%d%%d)")
+            :gsub("%%H", "%%d%%d")
+            :gsub("%%I", "%%d%%d")
+            :gsub("%%M", "%%d%%d")
+            :gsub("%%S", "%%d%%d")
+            :gsub("%%U", "%%d%%d")
+            :gsub("%%V", "%%d%%d")
+            :gsub("%%W", "%%d%%d")
+            :gsub("%%y", "%%d%%d")
+            :gsub("%%j", "%%d%%d%%d")
+            :gsub("%%Y", "(%%d%%d%%d%%d)")
+            :gsub("%%s", "%%d+")
+            :gsub("%%p", "[AP]M") -- it's actually backwards like this
+            :gsub("%%P", "[ap]m") -- I didn't mess it up
+            :gsub("%%a", "%%a+")
+            :gsub("%%A", "%%a+")
+            :gsub("%%b", "%%a+")
+            :gsub("%%B", "%%a+")
+
+        -- escape chars
+        format_str = format_str
+            :gsub("^%^", "%%^")
+            :gsub("%$$", "%%$")
+            :gsub("%.", "%%.")
+        return format_str .. "$"
     end,
 }
 

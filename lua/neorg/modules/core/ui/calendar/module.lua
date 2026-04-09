@@ -24,6 +24,14 @@ module.setup = function()
     }
 end
 
+---@class NeorgCalendarOptions
+---@field height? number
+---@field padding? number
+---@field mode? "standalone" | "select_date" | "select_range"
+---@field callback? fun(date: string)
+---@field view? "monthly"
+---@field date? osdate
+
 module.private = {
 
     modes = {},
@@ -36,7 +44,7 @@ module.private = {
             return cur_mode
         end
 
-        print("Error: mode not set or not available")
+        error("Error: mode not set or not available")
     end,
 
     get_view = function(name)
@@ -44,7 +52,7 @@ module.private = {
             return module.private.views[name]
         end
 
-        print("Error: view not set or not available")
+        error("Error: view not set or not available")
     end,
 
     extract_ui_info = function(buffer, window)
@@ -64,6 +72,7 @@ module.private = {
         }
     end,
 
+    ---@param options NeorgCalendarOptions
     open_window = function(options)
         local MIN_HEIGHT = 14
 
@@ -96,6 +105,9 @@ module.public = {
         module.private.views[name] = details
     end,
 
+    ---@param buffer number
+    ---@param window number
+    ---@param options NeorgCalendarOptions
     create_calendar = function(buffer, window, options)
         local callback_and_close = function(result)
             if options.callback ~= nil then
@@ -118,6 +130,7 @@ module.public = {
         view.setup(ui_info, mode, options.date or os.date("*t"), options)
     end,
 
+    ---@param options NeorgCalendarOptions
     open = function(options)
         local buffer, window = module.private.open_window(options)
 
@@ -126,6 +139,7 @@ module.public = {
         return module.public.create_calendar(buffer, window, options)
     end,
 
+    ---@param options NeorgCalendarOptions
     select_date = function(options)
         local buffer, window = module.private.open_window(options)
 
@@ -134,6 +148,7 @@ module.public = {
         return module.public.create_calendar(buffer, window, options)
     end,
 
+    ---@param options NeorgCalendarOptions
     select_date_range = function(options)
         local buffer, window = module.private.open_window(options)
 
