@@ -130,7 +130,7 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
     version = "*", -- Pin Neorg to the latest stable release
     config = true,
     dependencies = {
-    'nvim-neorg/tree-sitter-norg', -- needed for setting up parsers
+      'nvim-neorg/tree-sitter-norg', -- needed for setting up parsers
     }
 }
 ```
