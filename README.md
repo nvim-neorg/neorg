@@ -53,7 +53,7 @@ which also makes `.norg` files easily usable anywhere outside of Neorg itself.
 A good way of thinking about Neorg is as a plaintext environment which can be adapted to a variety of use cases.
 If a problem can be represented using raw text, it can be solved using Neorg.
 
-###### :exclamation: **IMPORTANT**: Neorg is young software. We consider it stable however be prepared for occasional breaking workflow changes. Make sure to pin the version of Neorg you'd like to use and only update when you are ready.
+###### :exclamation: **IMPORTANT**: Neorg is young software. We consider it stable however be prepared for occasional breaking workflow changes. Make sure to pin the version of Neorg you'd like to use and only update when you are ready
 
 ## 🌟 Tutorial
 
@@ -90,14 +90,18 @@ One way of installing Neorg is via [rocks.nvim](https://github.com/nvim-neorocks
 - Run `:Rocks install rocks-config.nvim` (if you don't have it already!).
 - Run `:Rocks install neorg`.
 - From the root of your configuration (`~/.config/nvim/` on unix-like systems), create a `lua/plugins/neorg.lua` file and place the following content inside:
+
   ```lua
   require("neorg").setup()
   ```
 
 <!-- TODO: rewrite this section once a new luarocks release is made, as it will automatically download nvim-treesitter-legacy-api as a dependency -->
+
 For the time being you also need `nvim-treesitter` installed.
+
 - `:Rocks install nvim-treesitter-legacy-api`
 - Just like the `neorg.lua` file, create a `lua/plugins/treesitter.lua` file and place the following content inside:
+
   ```lua
   require("nvim-treesitter.configs").setup({
     highlight = {
@@ -125,6 +129,9 @@ the [Lua for Windows](https://github.com/rjpcomputing/luaforwindows) all-in-one 
     lazy = false, -- Disable lazy loading as some `lazy.nvim` distributions set `lazy = true` by default
     version = "*", -- Pin Neorg to the latest stable release
     config = true,
+    dependencies = {
+    'nvim-neorg/tree-sitter-norg', -- needed for setting up parsers
+    }
 }
 ```
 
