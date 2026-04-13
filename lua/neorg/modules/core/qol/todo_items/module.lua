@@ -10,10 +10,11 @@ The following keybinds are exposed (with their default binds):
 - `<Plug>(neorg.qol.todo-items.todo.task-done)` (`<LocalLeader>td`)
 - `<Plug>(neorg.qol.todo-items.todo.task-undone)` (`<LocalLeader>tu`)
 - `<Plug>(neorg.qol.todo-items.todo.task-pending)` (`<LocalLeader>tp`)
-- `<Plug>(neorg.qol.todo-items.todo.task-on_hold)` (`<LocalLeader>th`)
+- `<Plug>(neorg.qol.todo-items.todo.task-on-hold)` (`<LocalLeader>th`)
 - `<Plug>(neorg.qol.todo-items.todo.task-cancelled)` (`<LocalLeader>tc`)
 - `<Plug>(neorg.qol.todo-items.todo.task-recurring)` (`<LocalLeader>tr`)
 - `<Plug>(neorg.qol.todo-items.todo.task-important)` (`<LocalLeader>ti`)
+- `<Plug>(neorg.qol.todo-items.todo.task-ambiguous)` (`<LocalLeader>ta`)
 - `<Plug>(neorg.qol.todo-items.todo.task-cycle)` (`<C-Space>`)
 - `<Plug>(neorg.qol.todo-items.todo.task-cycle-reverse)` (no default keybind)
 
