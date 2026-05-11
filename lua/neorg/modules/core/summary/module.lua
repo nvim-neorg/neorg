@@ -353,7 +353,6 @@ module.public = {
         local ws_root = ws_current[2]
         local all_files = dirman.get_norg_files(ws_current[1]) or {}
         local exDirs = module.config.public.exclude_dirs
-        local Path = require("pathlib")
         local files = {}
 
         -- loop over all files in the current workspace
@@ -362,15 +361,13 @@ module.public = {
             -- loop over all dirs to exclude
             for j = 1, #exDirs do
                 local exDirPathString = ws_root:to_absolute():__tostring() .. "/" .. exDirs[j]
-                if Path.new(exDirPathString):exists() then
-                    local matchStrings = string.find(all_files[i]:to_absolute():__tostring(), exDirPathString)
-                    -- if the filepath contains the path of a directory that is to be excluded at position 1 (starts
-                    -- with it), then do not include the file
-                    if matchStrings == 1 then
-                        include = false
-                        -- do not unnecessarily check the other exclude_dirs
-                        break
-                    end
+                local matchStrings = string.find(all_files[i]:to_absolute():__tostring(), exDirPathString)
+                -- if the filepath contains the path of a directory that is to be excluded at position 1 (starts
+                -- with it), then do not include the file
+                if matchStrings == 1 then
+                    include = false
+                    -- do not unnecessarily check the other exclude_dirs
+                    break
                 end
             end
             -- insert the files PathlibPath object into the files table, which is going to be passed to the strategy function
