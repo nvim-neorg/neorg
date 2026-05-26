@@ -430,57 +430,58 @@ module.private = {
 
 module.neorg_post_load = module.public.sync
 
-module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.module.load" then
-        local ok = pcall(modules.load_module, event.content[1])
+module.event_callbacks = {
+    ["core.neorgcmd"] = {
+        ["module.load"] = function()
+            local ok = pcall(modules.load_module, event.content[1])
 
-        if not ok then
-            vim.notify(string.format("Module `%s` does not exist!", event.content[1]), vim.log.levels.ERROR, {})
-        end
-    end
+            if not ok then
+                vim.notify(string.format("Module `%s` does not exist!", event.content[1]), vim.log.levels.ERROR, {})
+            end
+        end,
+        ["module.list"] = function()
+            local Popup = require("nui.popup")
 
-    if event.type == "core.neorgcmd.events.module.list" then
-        local Popup = require("nui.popup")
+            local module_list_popup = Popup({
+                position = "50%",
+                size = { width = "50%", height = "80%" },
+                enter = true,
+                buf_options = {
+                    filetype = "norg",
+                    modifiable = true,
+                    readonly = false,
+                },
+                win_options = {
+                    conceallevel = 3,
+                    concealcursor = "nvi",
+                },
+            })
 
-        local module_list_popup = Popup({
-            position = "50%",
-            size = { width = "50%", height = "80%" },
-            enter = true,
-            buf_options = {
-                filetype = "norg",
-                modifiable = true,
-                readonly = false,
-            },
-            win_options = {
-                conceallevel = 3,
-                concealcursor = "nvi",
-            },
-        })
+            module_list_popup:on("VimResized", function()
+                module_list_popup:update_layout()
+            end)
 
-        module_list_popup:on("VimResized", function()
-            module_list_popup:update_layout()
-        end)
+            local function close()
+                module_list_popup:unmount()
+            end
 
-        local function close()
-            module_list_popup:unmount()
-        end
+            module_list_popup:map("n", "<Esc>", close, {})
+            module_list_popup:map("n", "q", close, {})
 
-        module_list_popup:map("n", "<Esc>", close, {})
-        module_list_popup:map("n", "q", close, {})
+            local lines = {}
 
-        local lines = {}
+            for name, _ in pairs(neorg.modules.loaded_modules) do
+                table.insert(lines, "- `" .. name .. "`")
+            end
 
-        for name, _ in pairs(neorg.modules.loaded_modules) do
-            table.insert(lines, "- `" .. name .. "`")
-        end
+            vim.api.nvim_buf_set_lines(module_list_popup.bufnr, 0, -1, true, lines)
 
-        vim.api.nvim_buf_set_lines(module_list_popup.bufnr, 0, -1, true, lines)
+            vim.bo[module_list_popup.bufnr].modifiable = false
 
-        vim.bo[module_list_popup.bufnr].modifiable = false
-
-        module_list_popup:mount()
-    end
-end
+            module_list_popup:mount()
+        end,
+    },
+}
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {

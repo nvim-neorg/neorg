@@ -26,8 +26,9 @@ module.public = {
     },
 }
 
-module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.return" then
+module.event_callbacks = {}
+module.event_callbacks["core.neorgcmd"] = {
+    ["return"] = function()
         -- Get all the buffers
         local buffers = vim.api.nvim_list_bufs()
 
@@ -47,9 +48,8 @@ module.on_event = function(event)
         for _, buffer in ipairs(to_delete) do
             vim.api.nvim_buf_delete(buffer, {})
         end
-    end
-end
-
+    end,
+}
 module.events.subscribed = {
     ["core.neorgcmd"] = {
         ["return"] = true,

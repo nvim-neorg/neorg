@@ -274,126 +274,145 @@ module.private = {
     end,
 }
 
----@param event neorg.event
-module.on_event = function(event)
-    if event.type == "core.neorgcmd.events.export.to-file" then
-        -- Syntax: Neorg export to-file file.extension forced-filetype?
-        -- Example: Neorg export to-file my-custom-file markdown
+module.event_callbacks = {
+    ["core.neorgcmd"] = {
+        ["export.to-file"] = function(event)
+            -- Syntax: Neorg export to-file file.extension forced-filetype?
+            -- Example: Neorg export to-file my-custom-file markdown
 
-        local filepath = vim.fn.expand(event.content[1])
-        local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
-        local exported = module.public.export(event.buffer, filetype)
+            local filepath = vim.fn.expand(event.content[1])
+            local filetype = event.content[2] or vim.filetype.match({ filename = filepath })
+            local exported = module.public.export(event.buffer, filetype)
 
-        vim.loop.fs_open(filepath, "w", 438, function(err, fd)
-            assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
-            assert(fd)
+            vim.loop.fs_open(filepath, "w", 438, function(err, fd)
+                assert(not err, lib.lazy_string_concat("Failed to open file '", filepath, "' for export: ", err))
+                assert(fd)
 
-            vim.loop.fs_write(fd, exported, 0, function(werr)
-                assert(not werr, lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr))
+                vim.loop.fs_write(fd, exported, 0, function(werr)
+                    assert(
+                        not werr,
+                        lib.lazy_string_concat("Failed to write to file '", filepath, "' for export: ", werr)
+                    )
+                end)
+
+                vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
             end)
+            vim.api.nvim_exec_autocmds("User", {
+                pattern = "NeorgExportComplete",
+            })
+        end,
+        ["export.to-clipboard"] = function(event)
+            -- Syntax: Neorg export to-clipboard filetype
+            -- Example: Neorg export to-clipboard markdown
 
-            vim.schedule(lib.wrap(utils.notify, "Successfully exported 1 file!"))
-        end)
-    elseif event.type == "core.neorgcmd.events.export.to-clipboard" then
-        -- Syntax: Neorg export to-clipboard filetype
-        -- Example: Neorg export to-clipboard markdown
+            local filetype = event.content[1]
+            local data = event.content.data
+            local exported = module.public.export_range(event.buffer, data.line1, data.line2, filetype)
 
-        local filetype = event.content[1]
-        local data = event.content.data
-        local exported = module.public.export_range(event.buffer, data.line1, data.line2, filetype)
+            vim.fn.setreg("+", exported, "l")
+            vim.api.nvim_exec_autocmds("User", {
+                pattern = "NeorgExportComplete",
+            })
+        end,
+        ["export.directory"] = function(event)
+            local path = event.content[3] and vim.fn.expand(event.content[3])
+                or module.config.public.export_dir
+                    :gsub("<language>", event.content[2])
+                    :gsub("<export%-dir>", event.content[1])
+            vim.fn.mkdir(path, "p")
 
-        vim.fn.setreg("+", exported, "l")
-    elseif event.type == "core.neorgcmd.events.export.directory" then
-        local path = event.content[3] and vim.fn.expand(event.content[3])
-            or module.config.public.export_dir
-                :gsub("<language>", event.content[2])
-                :gsub("<export%-dir>", event.content[1])
-        vim.fn.mkdir(path, "p")
+            -- The old value of `eventignore` is stored here. This is done because the eventignore
+            -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
+            -- activate the concealer, which not only slows down performance notably but also causes errors.
+            ---@diagnostic disable-next-line: undefined-field
+            local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
 
-        -- The old value of `eventignore` is stored here. This is done because the eventignore
-        -- value is set to ignore BufEnter events before loading all the Neorg buffers, as they can mistakenly
-        -- activate the concealer, which not only slows down performance notably but also causes errors.
-        ---@diagnostic disable-next-line: undefined-field
-        local old_event_ignore = table.concat(vim.opt.eventignore:get(), ",")
+            vim.loop.fs_scandir(event.content[1], function(err, handle)
+                assert(not err, lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
+                assert(handle)
 
-        vim.loop.fs_scandir(event.content[1], function(err, handle)
-            assert(not err, lib.lazy_string_concat("Failed to scan directory '", event.content[1], "': ", err))
-            assert(handle)
+                local file_counter, parsed_counter = 0, 0
 
-            local file_counter, parsed_counter = 0, 0
+                while true do
+                    local name, type = vim.loop.fs_scandir_next(handle)
 
-            while true do
-                local name, type = vim.loop.fs_scandir_next(handle)
-
-                if not name then
-                    break
-                end
-
-                if type == "file" and vim.endswith(name, ".norg") then
-                    file_counter = file_counter + 1
-
-                    local function check_counters()
-                        parsed_counter = parsed_counter + 1
-
-                        if parsed_counter >= file_counter then
-                            vim.schedule(
-                                lib.wrap(utils.notify, string.format("Successfully exported %d files!", file_counter))
-                            )
-                        end
+                    if not name then
+                        break
                     end
 
-                    vim.schedule(function()
-                        local filepath = vim.fn.expand(event.content[1]) .. "/" .. name
+                    if type == "file" and vim.endswith(name, ".norg") then
+                        file_counter = file_counter + 1
 
-                        vim.opt.eventignore = "BufEnter"
+                        local function check_counters()
+                            parsed_counter = parsed_counter + 1
 
-                        local buffer = assert(vim.fn.bufadd(filepath))
-                        vim.fn.bufload(buffer)
-
-                        vim.opt.eventignore = old_event_ignore
-
-                        local exported, extension = module.public.export(buffer, event.content[2])
-
-                        vim.api.nvim_buf_delete(buffer, { force = true })
-
-                        if not exported then
-                            check_counters()
-                            return
-                        end
-
-                        local write_path = path .. "/" .. name:gsub("%.%a+$", "." .. extension)
-
-                        vim.loop.fs_open(write_path, "w+", 438, function(fs_err, fd)
-                            assert(
-                                not fs_err,
-                                lib.lazy_string_concat("Failed to open file '", write_path, "' for export: ", fs_err)
-                            )
-                            assert(fd)
-
-                            vim.loop.fs_write(fd, exported, 0, function(werr)
-                                assert(
-                                    not werr,
-                                    lib.lazy_string_concat(
-                                        "Failed to write to file '",
-                                        write_path,
-                                        "' for export: ",
-                                        werr
+                            if parsed_counter >= file_counter then
+                                vim.schedule(
+                                    lib.wrap(
+                                        utils.notify,
+                                        string.format("Successfully exported %d files!", file_counter)
                                     )
                                 )
+                            end
+                        end
 
+                        vim.schedule(function()
+                            local filepath = vim.fn.expand(event.content[1]) .. "/" .. name
+
+                            vim.opt.eventignore = "BufEnter"
+
+                            local buffer = assert(vim.fn.bufadd(filepath))
+                            vim.fn.bufload(buffer)
+
+                            vim.opt.eventignore = old_event_ignore
+
+                            local exported, extension = module.public.export(buffer, event.content[2])
+
+                            vim.api.nvim_buf_delete(buffer, { force = true })
+
+                            if not exported then
                                 check_counters()
+                                return
+                            end
+
+                            local write_path = path .. "/" .. name:gsub("%.%a+$", "." .. extension)
+
+                            vim.loop.fs_open(write_path, "w+", 438, function(fs_err, fd)
+                                assert(
+                                    not fs_err,
+                                    lib.lazy_string_concat(
+                                        "Failed to open file '",
+                                        write_path,
+                                        "' for export: ",
+                                        fs_err
+                                    )
+                                )
+                                assert(fd)
+
+                                vim.loop.fs_write(fd, exported, 0, function(werr)
+                                    assert(
+                                        not werr,
+                                        lib.lazy_string_concat(
+                                            "Failed to write to file '",
+                                            write_path,
+                                            "' for export: ",
+                                            werr
+                                        )
+                                    )
+
+                                    check_counters()
+                                end)
                             end)
                         end)
-                    end)
+                    end
                 end
-            end
-        end)
-    end
-
-    vim.api.nvim_exec_autocmds("User", {
-        pattern = "NeorgExportComplete",
-    })
-end
+            end)
+            vim.api.nvim_exec_autocmds("User", {
+                pattern = "NeorgExportComplete",
+            })
+        end,
+    },
+}
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {
