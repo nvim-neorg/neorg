@@ -205,10 +205,10 @@ local function wrap_anchor()
         end
 
         local content
-        if #output > 0 and output[1] ~= "" then
-            content = output[1]
+        if state.link and state.link.link_description then
+            content = state.link.link_description
         else
-            content = state.link.link_text
+            content = state.link.link_location_text
         end
 
         output = {
