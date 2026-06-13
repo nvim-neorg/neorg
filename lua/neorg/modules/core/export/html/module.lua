@@ -32,7 +32,7 @@ module.setup = function()
     }
 end
 
---- Enumeration of different stackk types
+--- Enumeration of different stack types
 ---@enum StackKey
 local StackKey = {
     LIST = "list",
@@ -40,7 +40,7 @@ local StackKey = {
     SPAN = "span",
 }
 
---- Enumeration of differnete link target types.
+--- Enumeration of different link target types.
 --- @enum HeadingType
 local HeadingType = {
     HEADING1 = "h1",
@@ -191,7 +191,7 @@ local function add_closing_tag(tag, cleanup)
     end
 end
 
----Builds a link and adds it to the output givne recollected data in the state table.
+---Builds a link and adds it to the output given recollected data in the state table.
 ---@return fun(_: any, state: table): table
 local function wrap_anchor()
     return function(output, state)
@@ -386,7 +386,7 @@ end
 ---@param output table
 ---@param state table
 ---@return table
-local function add_closing_segement_tags(output, state)
+local function add_closing_segment_tags(output, state)
     if state.heading then
         table.insert(output, "</" .. state.heading .. ">")
         state.heading = nil
@@ -427,7 +427,7 @@ local function build_footnote(footnote)
         '\n<div class="footnote-title">\n',
         footnote.title,
         "\n</div>",
-        '\n<div class="footnore-content">\n',
+        '\n<div class="footnote-content">\n',
         footnote.content,
         "\n</div>",
         "\n</div>",
@@ -438,13 +438,13 @@ end
 local function get_anchor(_, node, _)
     local target = hop.locate_anchor_declaration_target(node)
     local link = nil
-    local link_desription = nil
+    local link_description = nil
     local anchor_definition = nil
     if target then
-        link_desription = target.node:parent()
+        link_description = target.node:parent()
     end
-    if link_desription then
-        anchor_definition = link_desription:parent()
+    if link_description then
+        anchor_definition = link_description:parent()
     end
     if anchor_definition then
         link = hop.parse_link(anchor_definition, 0)
@@ -466,7 +466,7 @@ end
 module.config.public = {
     --- If you'd like to modify the way specific range tabs are handled. For
     --- example if you wanted to translate document.meta into use-case specific
-    --- HTML, you could so here (see: module.private[ranged_tag_handler""] for
+    --- HTML, you could do so here (see: module.private[ranged_tag_handler""] for
     --- examples).
     ranged_tag_handler = {},
     -- Used by the exporter to know what extension to use
@@ -651,15 +651,15 @@ module.public = {
             ["weak_carryover"] = "",
 
             -- [UNSUPPORTED] Infirm Tags are not currently supported, TS parsing
-            -- is returning unexpected ranges for .image tag, specically "http:"
-            -- gets included as a param and then the rest of hte URL is moved to
+            -- is returning unexpected ranges for .image tag, specifically "http:"
+            -- gets included as a param and then the rest of the URL is moved to
             -- the following paragraph as content.
             ["infirm_tag"] = "",
         },
 
         recollectors = {
             ["paragraph"] = add_closing_p_tag,
-            ["paragraph_segment"] = add_closing_segement_tags,
+            ["paragraph_segment"] = add_closing_segment_tags,
 
             ["link"] = wrap_anchor(),
             ["anchor_definition"] = wrap_anchor(),
