@@ -492,7 +492,9 @@ module.public = {
                 split_text[1] = string.rep(" ", ranged_tag_content_column_start - state.tag_indent) .. split_text[1]
 
                 for i = 2, #split_text do
-                    split_text[i] = split_text[i]:sub(state.tag_indent + 1)
+                    local leading_ws = split_text[i]:match("^(%s*)")
+                    local strip = math.min(#leading_ws, state.tag_indent)
+                    split_text[i] = split_text[i]:sub(strip + 1)
                 end
 
                 return state.tag_close and (table.concat(split_text, "\n") .. "\n")
