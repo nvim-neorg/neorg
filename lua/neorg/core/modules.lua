@@ -783,10 +783,20 @@ function modules.create_event(module, type, content, ev)
         winid = vim.api.nvim_get_current_win()
     end
 
-    new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
+    -- Only read the cursor from `winid` when it actually displays `bufid`; otherwise its
+    -- cursor row belongs to a different buffer and may be out of range for `bufid`, which
+    -- would crash `nvim_buf_get_lines`. This happens when an event is broadcast while
+    -- `bufid` is not shown in any window (e.g. `set_workspace` during startup).
+    if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == bufid then
+        new_event.cursor_position = vim.api.nvim_win_get_cursor(winid)
 
-    local row_1b = new_event.cursor_position[1]
-    new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b - 1, row_1b, true)[1]
+        local row_1b = new_event.cursor_position[1]
+        new_event.line_content = vim.api.nvim_buf_get_lines(bufid, row_1b - 1, row_1b, false)[1] or ""
+    else
+        new_event.cursor_position = { 0, 0 }
+        new_event.line_content = ""
+    end
+
     new_event.referrer = module.name
     new_event.broadcast = true
     new_event.buffer = bufid
