@@ -392,9 +392,9 @@ module.private = {
 
                 v = {
                     -- Promote objects in range
-                    { ">", "<Plug>(neorg.promo.promote.range)", opts = { desc = "[neorg] Promote Objects in Range" } },
+                    { ">", "<Plug>(neorg.promo.promote.range)gv", opts = { desc = "[neorg] Promote Objects in Range" } },
                     -- Demote objects in range
-                    { "<", "<Plug>(neorg.promo.demote.range)", opts = { desc = "[neorg] Demote Objects in Range" } },
+                    { "<", "<Plug>(neorg.promo.demote.range)gv", opts = { desc = "[neorg] Demote Objects in Range" } },
                 },
             },
         },
