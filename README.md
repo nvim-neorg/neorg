@@ -75,6 +75,17 @@ Neorg's setup process is slightly more complex than average, so we encourage you
 installation process, run `:checkhealth neorg` to see if everything's
 correct!**
 
+### nix one-liner
+
+If you have [nix](https://nixos.org/) with [flakes](https://nixos.wiki/wiki/Flakes) enabled, you can try neorg in one line:
+
+`nix run 'github:nvim-neorg/neorg?dir=flake-app'`
+
+It opens a self-contained neorg bundled with xterm, fonts, colorscheme and other basic configurations,
+so that you can try neorg with zero hassle.
+
+It opens the default neorg workspace under `~/neorg-notes`. Copy and modify `flake-app/flake.nix` if you want to change the path.
+
 ### `neorg-kickstart`
 
 Not bothered to set up Neovim on your own? Check out our [kickstart config](https://github.com/nvim-neorg/neorg/wiki/Kickstart)

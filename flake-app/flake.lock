@@ -1,0 +1,241 @@
+{
+  "nodes": {
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib"
+      },
+      "locked": {
+        "lastModified": 1772408722,
+        "narHash": "sha256-rHuJtdcOjK7rAHpHphUb1iCvgkU3GpfvicLMwwnfMT0=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "f20dc5d9b8027381c474144ecabc9034d6a839a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "kanagawa": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1760519540,
+        "narHash": "sha256-nHcQWTX4x4ala6+fvh4EWRVcZMNk5jZiZAwWhw03ExE=",
+        "owner": "rebelot",
+        "repo": "kanagawa.nvim",
+        "rev": "aef7f5cec0a40dbe7f3304214850c472e2264b10",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rebelot",
+        "repo": "kanagawa.nvim",
+        "rev": "aef7f5cec0a40dbe7f3304214850c472e2264b10",
+        "type": "github"
+      }
+    },
+    "lua-utils": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1708177208,
+        "narHash": "sha256-9ildzQEMkXKZ3LHq+khGFgRQFxlIXQclQ7QU3fcU1C4=",
+        "owner": "nvim-neorg",
+        "repo": "lua-utils.nvim",
+        "rev": "e565749421f4bbb5d2e85e37c3cef9d56553d8bd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-neorg",
+        "ref": "v1.0.2",
+        "repo": "lua-utils.nvim",
+        "type": "github"
+      }
+    },
+    "neorg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768058837,
+        "narHash": "sha256-azweiMPwFywBXZeIdaLDlqU9ey8/3TciphnxA24ehXQ=",
+        "owner": "nvim-neorg",
+        "repo": "neorg",
+        "rev": "408fc04013a95da8f217cb0958a06b6a77c01743",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-neorg",
+        "ref": "v9.4.0",
+        "repo": "neorg",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1772598333,
+        "narHash": "sha256-YaHht/C35INEX3DeJQNWjNaTcPjYmBwwjFJ2jdtr+5U=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "fabb8c9deee281e50b1065002c9828f2cf7b2239",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-lib": {
+      "locked": {
+        "lastModified": 1772328832,
+        "narHash": "sha256-e+/T/pmEkLP6BHhYjx6GmwP5ivonQQn0bJdH9YrRB+Q=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "c185c7a5e5dd8f9add5b2f8ebeff00888b070742",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
+    "nui": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1708114759,
+        "narHash": "sha256-L0ebXtv794357HOAgT17xlEJsmpqIHGqGlYfDB20WTo=",
+        "owner": "MunifTanjim",
+        "repo": "nui.nvim",
+        "rev": "a0fd35fcbb4cb479366f1dc5f20145fd718a3733",
+        "type": "github"
+      },
+      "original": {
+        "owner": "MunifTanjim",
+        "ref": "0.3.0",
+        "repo": "nui.nvim",
+        "type": "github"
+      }
+    },
+    "nvim-nio": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1737405073,
+        "narHash": "sha256-eDbzJAGdUBhTwuD0Nt9FihZj1MmVdQfn/GKIybuu5a8=",
+        "owner": "nvim-neotest",
+        "repo": "nvim-nio",
+        "rev": "21f5324bfac14e22ba26553caf69ec76ae8a7662",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-neotest",
+        "ref": "v1.10.1",
+        "repo": "nvim-nio",
+        "type": "github"
+      }
+    },
+    "nvim-treesitter": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1729666409,
+        "narHash": "sha256-8MQWi9FmcsD+p3c9neaoocnoDpNOskRvUPXAf+iJZDs=",
+        "owner": "nvim-treesitter",
+        "repo": "nvim-treesitter",
+        "rev": "cfc6f2c117aaaa82f19bcce44deec2c194d900ab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-treesitter",
+        "ref": "v0.9.3",
+        "repo": "nvim-treesitter",
+        "type": "github"
+      }
+    },
+    "pathlib": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1724943804,
+        "narHash": "sha256-YhCJeNKlcjgg3q51UWFhuIEPzNueC8YTpeuPPJDndvw=",
+        "owner": "pysan3",
+        "repo": "pathlib.nvim",
+        "rev": "57e5598af6fe253761c1b48e0b59b7cd6699e2c1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pysan3",
+        "ref": "v2.2.3",
+        "repo": "pathlib.nvim",
+        "type": "github"
+      }
+    },
+    "plenary": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1697031827,
+        "narHash": "sha256-zR44d9MowLG1lIbvrRaFTpO/HXKKrO6lbtZfvvTdx+o=",
+        "owner": "nvim-lua",
+        "repo": "plenary.nvim",
+        "rev": "50012918b2fc8357b87cff2a7f7f0446e47da174",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-lua",
+        "ref": "v0.1.4",
+        "repo": "plenary.nvim",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "kanagawa": "kanagawa",
+        "lua-utils": "lua-utils",
+        "neorg": "neorg",
+        "nixpkgs": "nixpkgs",
+        "nui": "nui",
+        "nvim-nio": "nvim-nio",
+        "nvim-treesitter": "nvim-treesitter",
+        "pathlib": "pathlib",
+        "plenary": "plenary",
+        "tree-sitter-norg": "tree-sitter-norg",
+        "tree-sitter-norg-meta": "tree-sitter-norg-meta"
+      }
+    },
+    "tree-sitter-norg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1725461847,
+        "narHash": "sha256-z3h5qMuNKnpQgV62xZ02F5vWEq4VEnm5lxwEnIFu+Rw=",
+        "owner": "nvim-neorg",
+        "repo": "tree-sitter-norg",
+        "rev": "d89d95af13d409f30a6c7676387bde311ec4a2c8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-neorg",
+        "ref": "v0.2.6",
+        "repo": "tree-sitter-norg",
+        "type": "github"
+      }
+    },
+    "tree-sitter-norg-meta": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1713028366,
+        "narHash": "sha256-8qSdwHlfnjFuQF4zNdLtU2/tzDRhDZbo9K54Xxgn5+8=",
+        "owner": "nvim-neorg",
+        "repo": "tree-sitter-norg-meta",
+        "rev": "6f0510cc516a3af3396a682fbd6655486c2c9d2d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nvim-neorg",
+        "ref": "v0.1.0",
+        "repo": "tree-sitter-norg-meta",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
