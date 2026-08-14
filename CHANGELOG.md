@@ -1,5 +1,15 @@
 # Changelog
 
+## [9.6.5](https://github.com/nvim-neorg/neorg/compare/v9.6.4...v9.6.5) (2026-08-14)
+
+
+### Bug Fixes
+
+* **export/html:** use link_description for anchor content ([da9d5c0](https://github.com/nvim-neorg/neorg/commit/da9d5c0f5d513d52877894fb4424e98d5f26d3f8))
+* **export/markdown:** avoid over-stripping indentation in ranged tags ([dd5ec3a](https://github.com/nvim-neorg/neorg/commit/dd5ec3ae4562f202e354e58f78afa3c26094375a))
+* **modules:** avoid crash when broadcasting an event for a hidden buffer ([827b404](https://github.com/nvim-neorg/neorg/commit/827b40463241ed5fe97d72e42b8b497bc3432965))
+* typos in core/export/html module ([7eca387](https://github.com/nvim-neorg/neorg/commit/7eca38772b7fe1a5737deacbc5ae50fbe92e8c21))
+
 ## [9.6.4](https://github.com/nvim-neorg/neorg/compare/v9.6.3...v9.6.4) (2026-04-09)
 
 
