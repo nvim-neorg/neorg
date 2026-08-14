@@ -19,6 +19,8 @@ The way the summary is generated relies on the `strategy` configuration option,
 which by default consults the document metadata (see also
 [`core.esupports.metagen`](@core.esupports.metagen)) or the first heading title
 as a fallback to build up a tree of categories, titles and descriptions.
+The module also provides the option to exclude files from certain directories 
+from the summary using the `exclude_dirs` configuration option.
 --]]
 
 local neorg = require("neorg.core")
@@ -307,6 +309,14 @@ module.config.public = {
     --   `fun(files: PathlibPath[], ws_root: PathlibPath, heading_level: number?, include_categories: string[]?): string[]?`.
     --   Returning a list of lines that make up the summary
     strategy = "default",
+
+    -- Directories to exclude from the summary.
+    --
+    -- Enter directory names relative to the current workspace. For example:
+    -- Your workspace directory: `/home/user/notes/`
+    -- The directory you want to exclude: `/home/user/notes/journal/`
+    -- Your config: `exclude_dirs = { "journal" }`
+    exclude_dirs = {},
 }
 
 ---@class core.summary
@@ -339,9 +349,36 @@ module.public = {
             return
         end
 
-        local ws_root = dirman.get_current_workspace()[2]
+        local ws_current = dirman.get_current_workspace()
+        local ws_root = ws_current[2]
+        local all_files = dirman.get_norg_files(ws_current[1]) or {}
+        local exDirs = module.config.public.exclude_dirs
+        local files = {}
+
+        -- loop over all files in the current workspace
+        for i = 1, #all_files do
+            local include = true
+            -- loop over all dirs to exclude
+            for j = 1, #exDirs do
+                local exDirPathString = ws_root:to_absolute():__tostring() .. "/" .. exDirs[j]
+                local matchStrings = string.find(all_files[i]:to_absolute():__tostring(), exDirPathString)
+                -- if the filepath contains the path of a directory that is to be excluded at position 1 (starts
+                -- with it), then do not include the file
+                if matchStrings == 1 then
+                    include = false
+                    -- do not unnecessarily check the other exclude_dirs
+                    break
+                end
+            end
+            -- insert the files PathlibPath object into the files table, which is going to be passed to the strategy function
+            if include then
+                table.insert(files, all_files[i])
+            end
+        end
+
+
         local generated = module.config.public.strategy(
-            dirman.get_norg_files(dirman.get_current_workspace()[1]) or {},
+            files,
             ws_root,
             level + 1,
             vim.tbl_map(string.lower, include_categories or {})
