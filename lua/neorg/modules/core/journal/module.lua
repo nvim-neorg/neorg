@@ -4,11 +4,13 @@
     description: The journal module allows you to take personal notes with zero friction.
     summary: Easily track a journal within Neorg.
     ---
-The journal module exposes a total of six commands.
+The journal module exposes a total of seven commands.
 The first three, `:Neorg journal today|yesterday|tomorrow`, allow you to access entries
 for a given time relative to today. A file will be opened with the respective date as a `.norg` file.
 
-The fourth command, `:Neorg journal custom`, allows you to specify a custom date as an argument.
+The fourth command, `"Neorg journal previous` opens the last created journal entry.
+
+The fifth command, `:Neorg journal custom`, allows you to specify a custom date as an argument.
 The date must be formatted according to the `YYYY-mm-dd` format, e.g. `2023-01-01`.
 
 The `:Neorg journal template` command creates a template file which will be used as the base whenever
@@ -115,6 +117,7 @@ module.load = function()
                     tomorrow = { args = 0, name = "journal.tomorrow" },
                     yesterday = { args = 0, name = "journal.yesterday" },
                     today = { args = 0, name = "journal.today" },
+                    previous = { args = 0, name = "journal.previous" },
                     custom = { max_args = 1, name = "journal.custom" }, -- format :yyyy-mm-dd
                     template = { args = 0, name = "journal.template" },
                     toc = {
@@ -458,6 +461,98 @@ module.public = {
             end)
         end)
     end,
+
+    --- Opens the most recent journal entry
+    open_previous = function()
+        local rel_path = module.public.find_most_recent_by_filename()
+        if not rel_path then
+            log.info("No journal entries found.")
+            return
+        end
+
+        -- we can treat it like a custom date
+        module.public.open_diary(nil, rel_path)
+    end,
+
+    --- Finds the most recent journal entry
+    find_most_recent_by_filename = function()
+        local workspace = module.config.public.workspace or module.required["core.dirman"].get_current_workspace()[1]
+        local workspace_path = module.required["core.dirman"].get_workspace(workspace)
+        local folder_name = module.config.public.journal_folder
+
+        local best_date = nil
+        local best_time = 0
+
+        local function try_update(year, month, day)
+            -- Convert to numeric
+            year = tonumber(year)
+            month = tonumber(month)
+            day = tonumber(day)
+            if not (year and month and day) then
+                return
+            end
+
+            local t = os.time({ year = year, month = month, day = day })
+            if t > best_time then
+                best_time = t
+                best_date = string.format("%04d-%02d-%02d", year, month, day)
+            end
+        end
+
+        local base = workspace_path .. config.pathsep .. folder_name .. config.pathsep
+        local handle = vim.loop.fs_scandir(base)
+        if type(handle) ~= "userdata" then
+            -- No journal folder (or can't scan) — return nil
+            return nil
+        end
+
+        while true do
+            local name, ftype = vim.loop.fs_scandir_next(handle)
+            if not name then
+                break
+            end
+
+            -- Nested strategy (year directories)
+            if ftype == "directory" then
+                local years_handle = vim.loop.fs_scandir(base .. name)
+                if type(years_handle) == "userdata" then
+                    while true do
+                        local mname, mtype = vim.loop.fs_scandir_next(years_handle)
+                        if not mname then
+                            break
+                        end
+
+                        if mtype == "directory" then
+                            local months_handle = vim.loop.fs_scandir(base .. name .. config.pathsep .. mname)
+                            if type(months_handle) == "userdata" then
+                                while true do
+                                    local dname, dtype = vim.loop.fs_scandir_next(months_handle)
+                                    if not dname then
+                                        break
+                                    end
+
+                                    -- Day files like `02.norg`
+                                    if dtype == "file" and string.match(dname, "%d%d%.norg") then
+                                        local file = vim.split(dname, ".", { plain = true })
+                                        try_update(name, mname, file[1])
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- Flat strategy files directly in the journal folder
+            if ftype == "file" and string.match(name, "%d%d%d%d%-%d%d%-%d%d%.norg") then
+                local file = vim.split(name, ".", { plain = true })
+                local parts = vim.split(file[1], "-")
+                try_update(parts[1], parts[2], parts[3])
+            end
+        end
+
+        return best_date -- nil if none
+    end,
 }
 
 module.on_event = function(event)
@@ -466,6 +561,8 @@ module.on_event = function(event)
             module.public.diary_tomorrow()
         elseif event.split_type[2] == "journal.yesterday" then
             module.public.diary_yesterday()
+        elseif event.split_type[2] == "journal.previous" then
+            module.public.open_previous()
         elseif event.split_type[2] == "journal.custom" then
             if not event.content[1] then
                 local calendar = modules.get_module("core.ui.calendar")
@@ -507,6 +604,7 @@ module.events.subscribed = {
         ["journal.yesterday"] = true,
         ["journal.tomorrow"] = true,
         ["journal.today"] = true,
+        ["journal.previous"] = true,
         ["journal.custom"] = true,
         ["journal.template"] = true,
         ["journal.toc.update"] = true,
