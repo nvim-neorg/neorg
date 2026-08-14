@@ -360,20 +360,26 @@ module.load = function()
     ts = module.required["core.integrations.treesitter"]
 end
 
-module.on_event = function(event)
-    if event.type == "core.autocommands.events.bufenter" and event.content.norg then
-        vim.api.nvim_set_option_value(
-            "indentexpr",
-            ("v:lua.require'neorg'.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(event.buffer),
-            { buf = event.buffer }
-        )
+module.event_callbacks = {
+    ["core.autocommands"] = {
+        bufenter = function(event)
+            if event.content.norg then
+                vim.api.nvim_set_option_value(
+                    "indentexpr",
+                    ("v:lua.require'neorg'.modules.get_module('core.esupports.indent').indentexpr(%d)"):format(
+                        event.buffer
+                    ),
+                    { buf = event.buffer }
+                )
 
-        local indentkeys = "o,O,*<M-o>,*<M-O>"
-            .. lib.when(module.config.public.format_on_enter, ",*<CR>", "")
-            .. lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
-        vim.api.nvim_set_option_value("indentkeys", indentkeys, { buf = event.buffer })
-    end
-end
+                local indentkeys = "o,O,*<M-o>,*<M-O>"
+                    .. lib.when(module.config.public.format_on_enter, ",*<CR>", "")
+                    .. lib.when(module.config.public.format_on_escape, ",*<Esc>", "")
+                vim.api.nvim_set_option_value("indentkeys", indentkeys, { buf = event.buffer })
+            end
+        end,
+    },
+}
 
 module.events.subscribed = {
     ["core.autocommands"] = {

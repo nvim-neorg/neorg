@@ -460,13 +460,15 @@ module.public = {
     end,
 }
 
-module.on_event = function(event)
-    if event.split_type[1] == "core.neorgcmd" then
-        if event.split_type[2] == "journal.tomorrow" then
+module.event_callbacks = {
+    ["core.neorgcmd"] = {
+        ["journal.tomorrow"] = function()
             module.public.diary_tomorrow()
-        elseif event.split_type[2] == "journal.yesterday" then
+        end,
+        ["journal.yesterday"] = function()
             module.public.diary_yesterday()
-        elseif event.split_type[2] == "journal.custom" then
+        end,
+        ["journal.custom"] = function(event)
             if not event.content[1] then
                 local calendar = modules.get_module("core.ui.calendar")
 
@@ -490,17 +492,21 @@ module.on_event = function(event)
             else
                 module.public.open_diary(nil, event.content[1])
             end
-        elseif event.split_type[2] == "journal.today" then
+        end,
+        ["journal.today"] = function()
             module.public.diary_today()
-        elseif event.split_type[2] == "journal.template" then
+        end,
+        ["journal.template"] = function()
             module.public.create_template()
-        elseif event.split_type[2] == "journal.toc.open" then
+        end,
+        ["journal.toc.open"] = function()
             module.public.open_toc()
-        elseif event.split_type[2] == "journal.toc.update" then
+        end,
+        ["journal.toc.update"] = function()
             module.public.create_toc()
-        end
-    end
-end
+        end,
+    },
+}
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {

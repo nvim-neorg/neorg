@@ -992,13 +992,13 @@ module.public.get_next_node = function(node, allow_switch_parents, allow_next_pa
     return destination_node
 end
 
-module.on_event = function(event)
-    if event.split_type[2] == "sync-parsers" then
+module.event_callbacks = {
+    ["core.neorgcmd"]= {["sync-parsers"] = function()
         local install = require("nvim-treesitter.install")
         install.commands.TSInstallSync["run!"]("norg")
         install.commands.TSInstallSync["run!"]("norg_meta")
-    end
-end
+    end}
+}
 
 module.events.subscribed = {
     ["core.neorgcmd"] = {

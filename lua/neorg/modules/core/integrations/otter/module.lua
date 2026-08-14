@@ -97,11 +97,16 @@ module.events.subscribed = {
     },
 }
 
-module.on_event = function(event)
-    if module.private[event.split_type[2]] then
-        module.private[event.split_type[2]](event)
-    end
-end
+module.event_callbacks = {
+    ["core.neorgcmd"] = {
+        ["otter.enable"] = function()
+            module.public.activate()
+        end,
+        ["otter.disable"] = function()
+            module.public.deactivate()
+        end,
+    },
+}
 
 module.config.public = {
     -- list of languages that otter will try to start a language server for.
@@ -120,15 +125,6 @@ module.config.public = {
         -- enable/disable Otter diagnostics
         enabled = true,
     },
-}
-
-module.private = {
-    ["otter.enable"] = function(_)
-        module.public.activate()
-    end,
-    ["otter.disable"] = function(_)
-        module.public.deactivate()
-    end,
 }
 
 module.public = {

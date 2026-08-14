@@ -85,7 +85,8 @@ local utils = require("neorg.core.utils")
 --- @field required? neorg.module.resolver Contains the public tables of all modules that were required via the `requires` array provided in the `setup()` function of this module.
 --- @field setup? fun(): neorg.module.setup? Function that is invoked before any other loading occurs. Should perform preliminary startup tasks.
 --- @field replaced? boolean If `true`, this means the module is a replacement for a core module. This flag is set automatically whenever `setup().replaces` is set to a value.
---- @field on_event fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
+--- @field on_event? fun(event: neorg.event) A callback that is invoked any time an event the module has subscribed to has fired.
+--- @field event_callbacks? table<string, table<string, fun(event: neorg.event)>> A callback that is invoked any time an event the module has subscribed to has fired.
 
 ---@class neorg.modules
 local modules = {}
@@ -828,7 +829,11 @@ function modules.broadcast_event(event, callback)
 
             if evt ~= nil and evt == true then
                 -- Run the on_event() for that module
-                current_module.on_event(event)
+                if current_module.event_callbacks then
+                    current_module.event_callbacks[event.split_type[1]][event.split_type[2]](event)
+                else
+                    current_module.on_event(event)
+                end
             end
         end
     end
@@ -864,7 +869,11 @@ function modules.send_event(recipient, event)
 
         -- If it is then trigger the module's on_event() function
         if evt ~= nil and evt == true then
-            mod.on_event(event)
+            if mod.event_callbacks then
+                mod.event_callbacks[event.split_type[1]][event.split_type[2]](event)
+            else
+                mod.on_event(event)
+            end
         end
     end
 end
